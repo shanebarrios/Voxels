@@ -32,7 +32,7 @@ private:
     glm::vec3 m_Pos {};
     glm::vec3 m_Direction { 0.0f, 0.0f, -1.0f };
 
-    glm::mat4 m_Projection{ glm::perspective(45.0f, 16.0f / 9.0f, 0.1f, 200.0f) };
+    glm::mat4 m_Projection{ glm::perspective(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f) };
 
     WorldCoords m_CurTickPosition{};
     WorldCoords m_LastTickPosition{};

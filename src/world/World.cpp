@@ -1,4 +1,5 @@
 #include "World.h"
+#include <algorithm>
 #include "../ecs/EntityFactory.h"
 #include "../ecs/Components.h"
 #include "../physics/PhysicsSystem.h"
@@ -7,16 +8,18 @@
 #include "../Logger.h"
 #include "ChunkUtils.h"
 
-static constexpr int k_RenderDistance = 2;
+constexpr int k_RenderDistance = 12;
 
 World::World()
 {
 	RegisterComponents();
-	m_Player = EntityFactory::CreatePlayer(m_ECS, { 8.0f, 32.0f, 8.0f });
+	m_Player = EntityFactory::CreatePlayer(m_ECS, { 8.0f, 100.0f, 8.0f });
 	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this);
 
-	UpdateLoadedChunks();
+	UpdateLoadedChunkQueue();
+	LoadChunks();
 	UpdateChunkMeshes();
+	PhysicsSystem::Update(m_ECS, *this);
 }
 
 BlockType World::GetBlock(BlockCoords blockCoords) const
@@ -90,9 +93,10 @@ void World::Update(const GameInput& input)
 
 	if (playerPositionOld != playerPositionNew)
 	{
-		UpdateUnloadedChunks();
-		UpdateLoadedChunks();
+		UpdateLoadedChunkQueue();
+		UnloadChunks();
 	}
+	LoadChunks();
 	UpdateChunkMeshes();
 }
 
@@ -104,37 +108,47 @@ void World::RegisterComponents()
 	m_ECS.RegisterComponent<LookComponent>();
 }
 
-void World::UpdateLoadedChunks()
+void World::UpdateLoadedChunkQueue()
 {
-	const WorldCoords& playerPosition = m_ECS.GetComponent<TransformComponent>(m_Player).Position;
+	WorldCoords playerPosition = m_ECS.GetComponent<TransformComponent>(m_Player).Position;
 	ChunkCoords playerChunkPosition = static_cast<ChunkCoords>(playerPosition);
+
+	std::vector<ChunkCoords> chunkLoadList{};
 
 	for (int y = -k_RenderDistance; y <= k_RenderDistance; y++)
 	{
-		for (int x = -k_RenderDistance; x <= k_RenderDistance; x++)
+		for (int z = -k_RenderDistance; z <= k_RenderDistance; z++)
 		{
-			for (int z = -k_RenderDistance; z <= k_RenderDistance; z++)
+			for (int x = -k_RenderDistance; x <= k_RenderDistance; x++)
 			{
-				ChunkCoords diff{ x, y, z };
-				ChunkCoords chunkPos = playerChunkPosition + diff;
-				if (m_LoadedChunks.find(chunkPos) == m_LoadedChunks.end())
+				ChunkCoords coords = playerChunkPosition + ChunkCoords{ x, y, z };
+				if (m_LoadedChunks.find(coords) == m_LoadedChunks.end())
 				{
-					auto chunk = std::make_unique<Chunk>(chunkPos);
-					m_LoadedChunks[chunkPos] = std::move(chunk);
+					chunkLoadList.push_back(coords);
 				}
 			}
 		}
 	}
+
+	std::sort(chunkLoadList.begin(), chunkLoadList.end(), [playerChunkPosition](ChunkCoords c1, ChunkCoords c2)
+		{
+			ChunkCoords diff1 = c1 - playerChunkPosition;
+			ChunkCoords diff2 = c2 - playerChunkPosition;
+			return diff1.NormSq() < diff2.NormSq();
+		});
+
+	m_ChunkLoadQueue.Data = std::move(chunkLoadList);
+	m_ChunkLoadQueue.Index = 0;
 }
 
-void World::UpdateUnloadedChunks()
+void World::UnloadChunks()
 {
-	const WorldCoords& playerPosition = m_ECS.GetComponent<TransformComponent>(m_Player).Position;
+	WorldCoords playerPosition = m_ECS.GetComponent<TransformComponent>(m_Player).Position;
 	ChunkCoords playerChunkPosition = static_cast<ChunkCoords>(playerPosition);
 
 	for (auto it = m_LoadedChunks.begin(); it != m_LoadedChunks.end(); )
 	{
-		const ChunkCoords& chunkPos = it->first;
+		ChunkCoords chunkPos = it->first;
 
 		ChunkCoords diff = chunkPos - playerChunkPosition;
 		if (std::abs(diff.X) > k_RenderDistance || std::abs(diff.Y) > k_RenderDistance || std::abs(diff.Z) > k_RenderDistance)
@@ -156,5 +170,17 @@ void World::UpdateChunkMeshes()
 		{
 			chunk->RebuildMesh(*this);
 		}
+	}
+}
+
+void World::LoadChunks()
+{
+	static constexpr int maxChunksLoaded = 64;
+	for (int i = 0; i < maxChunksLoaded && m_ChunkLoadQueue.Index < m_ChunkLoadQueue.Data.size(); i++)
+	{
+		ChunkCoords coords = m_ChunkLoadQueue.Data[m_ChunkLoadQueue.Index];
+		m_ChunkLoadQueue.Index++;
+		m_LoadedChunks[coords] = std::make_unique<Chunk>(coords);
+		
 	}
 }

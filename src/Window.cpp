@@ -47,7 +47,7 @@ Window::Window(int width, int height, std::string_view name) : m_Width{ width },
     {
         Window::Init();
     }
-    m_Window = glfwCreateWindow(width, height, name.data(), nullptr, nullptr);
+    m_Window = glfwCreateWindow(width, height, name.data(), glfwGetPrimaryMonitor(), nullptr);
     if (m_Window == nullptr)
     {
         LOG_ERROR("Failed to create window");

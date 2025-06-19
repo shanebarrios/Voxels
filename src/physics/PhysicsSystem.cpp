@@ -168,14 +168,12 @@ static void UpdateHorizontal(const World& world, PhysicsComponent& physics, Tran
 
 static void UpdateVertical(const World& world, PhysicsComponent& physics, TransformComponent& transform, const InputComponent* input)
 {
-	if (input)
+	if (input && (input->InputFlags & InputComponent::Jump) && !physics.Airborne)
 	{
-		if ((input->InputFlags & InputComponent::Jump) && !physics.Airborne)
-		{
-
-			physics.Velocity.Y = 0.42f;
-		}
+		physics.Velocity.Y = 0.42f;
+		physics.Airborne = true;
 	}
+
 	transform.Position.Y += physics.Velocity.Y;
 
 	float collisionCorrection = 0.0f;
@@ -194,7 +192,15 @@ static void UpdateVertical(const World& world, PhysicsComponent& physics, Transf
 		transform.Position.Y += collisionCorrection;
 	}
 
-	physics.Velocity.Y = (physics.Velocity.Y - 0.08f) * 0.98f;
+	if (physics.Airborne)
+	{
+		physics.Velocity.Y = (physics.Velocity.Y - 0.08f) * 0.98f;
+	}
+	else
+	{
+		physics.Velocity.Y = 0.0f;
+	}
+	LOG_INFO("{}", physics.Velocity.Y);
 }
 
 

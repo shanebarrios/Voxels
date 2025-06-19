@@ -8,9 +8,10 @@ out vec4 FragColor;
 
 uniform sampler2D u_TextureAtlas;
 
-const vec3 k_LightDir = vec3(0.5, -0.5, 0.0);
+const vec3 k_LightDir = vec3(-0.3, -1.0, -0.2);
 const vec3 k_LightColor = vec3(1.0, 1.0, 0.8);
 const float k_AmbientFactor = 0.4;
+const float k_DiffuseFactor = 0.9;
 
 void main()
 {
@@ -21,9 +22,8 @@ void main()
 
 	vec3 ambient = k_AmbientFactor * lightColor;
 
-	float diff = max(dot(normal, lightDir), 0.0);
+	float diff = max(dot(normal, lightDir), 0.0) * k_DiffuseFactor;
 	vec3 diffuse = diff * lightColor;
 
 	FragColor = vec4((ambient + diffuse) * k_LightColor, 1.0);
-	// FragColor = vec4(v_Normal, 1.0);
 }

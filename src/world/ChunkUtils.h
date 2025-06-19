@@ -56,21 +56,22 @@ namespace ChunkUtils
 
 	inline constexpr uint8_t ExtractX(size_t index)
 	{
-		return index & 0xFu;
+		return (index >> 4) & 0xFu;
 	}
 
 	inline constexpr uint8_t ExtractZ(size_t index)
 	{
-		return (index >> 4) & 0xFu;
+		return (index >> 8) & 0xFu;
 	}
 
 	inline constexpr uint8_t ExtractY(size_t index)
 	{
-		return (index >> 8) & 0xFu;
+		return index & 0xFu;
 	}
 
+	// "Y major" because of height map
 	inline constexpr size_t PackXYZ(uint8_t x, uint8_t y, uint8_t z)
 	{
-		return static_cast<size_t>(x) | (static_cast<size_t>(z) << 4u) | (static_cast<size_t>(y) << 8u);
+		return static_cast<size_t>(y) | (static_cast<size_t>(x) << 4u) | (static_cast<size_t>(z) << 8u);
 	}
 }

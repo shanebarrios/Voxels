@@ -10,6 +10,8 @@ struct ChunkCoords
 	int Y = 0;
 	int Z = 0;
 
+	int NormSq() const { return X * X + Y * Y + Z * Z; }
+
 	bool operator==(const ChunkCoords&) const = default;
 
 	constexpr ChunkCoords operator+(const ChunkCoords& other) const

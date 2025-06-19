@@ -3,9 +3,9 @@
 #include <unordered_map>
 #include <memory>
 #include <glm/glm.hpp>
-#include <queue>
+#include <array>
 #include "Chunk.h"
-#include "../Coordinates.h"
+#include <queue>
 #include "../ecs/ECS.h"
 #include "PlayerController.h"
 
@@ -28,6 +28,8 @@ struct PlayerView
 	const LookComponent* Look;
 };
 
+constexpr size_t k_MaxRenderDistance = 12;
+
 class World
 {
 public:
@@ -48,11 +50,19 @@ private:
 	ECS m_ECS{};
 	Entity m_Player{};  
 
-	std::unique_ptr<PlayerController> m_PlayerController{};
+	struct ChunkLoadQueue
+	{
+		std::vector<ChunkCoords> Data{};
+		size_t Index = 0;
+	};
 
+	std::unique_ptr<PlayerController> m_PlayerController{};
+	ChunkLoadQueue m_ChunkLoadQueue{};
+	
 	void RegisterComponents();
 
-	void UpdateLoadedChunks();
-	void UpdateUnloadedChunks();
+	void UpdateLoadedChunkQueue();
+	void LoadChunks();
+	void UnloadChunks();
 	void UpdateChunkMeshes();
 };

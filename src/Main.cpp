@@ -11,12 +11,14 @@
 #include "world/World.h"
 #include "ecs/ECS.h"
 #include "ecs/Components.h"
+#include "math/Noise.h"
 
+#include "CircularBuffer.h"
 
 int main()
 {
 	Logger::Init();
-	Window window{ 1920, 1080, "Voxels" };
+	Window window{ 2560, 1440, "Voxels" };
 
 	World world{};
 

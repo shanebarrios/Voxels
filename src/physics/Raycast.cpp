@@ -2,7 +2,7 @@
 #include "../world/World.h"
 #include <cmath>
 
-// Algorithm from
+// Algorithm adapted from
 // http://www.cse.yorku.ca/~amana/research/grid.pdf
 
 Raycast::Raycast(WorldCoords start, WorldCoords direction, float maxDistance) :
