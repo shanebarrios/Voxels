@@ -3,6 +3,7 @@
 #include "../Coordinates.h"
 #include "../world/Block.h"
 #include <optional>
+#include <functional>
 
 class World;
 

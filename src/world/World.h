@@ -8,6 +8,7 @@
 #include <queue>
 #include "../ecs/ECS.h"
 #include "PlayerController.h"
+#include "WorldGenerator.h"
 
 class Input;
 struct TransformComponent;
@@ -58,6 +59,7 @@ private:
 
 	std::unique_ptr<PlayerController> m_PlayerController{};
 	ChunkLoadQueue m_ChunkLoadQueue{};
+	WorldGenerator m_WorldGenerator{};
 	
 	void RegisterComponents();
 

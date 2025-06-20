@@ -4,6 +4,14 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
+struct ChunkCoords2D
+{
+	int X;
+	int Z;
+
+	bool operator==(const ChunkCoords2D&) const = default;
+};
+
 struct ChunkCoords
 {
 	int X = 0;
@@ -13,6 +21,11 @@ struct ChunkCoords
 	int NormSq() const { return X * X + Y * Y + Z * Z; }
 
 	bool operator==(const ChunkCoords&) const = default;
+
+	explicit operator ChunkCoords2D() const
+	{
+		return { X, Z };
+	}
 
 	constexpr ChunkCoords operator+(const ChunkCoords& other) const
 	{
@@ -82,6 +95,17 @@ namespace std
 			return h1 ^ (h2 << 1) ^ (h3 << 2);
 		}
 	};
+
+	template <>
+	struct hash<ChunkCoords2D>
+	{
+		size_t operator()(const ChunkCoords2D& coords) const
+		{
+			size_t h1 = std::hash<int>{}(coords.X);
+			size_t h2 = std::hash<int>{}(coords.Z);
+			return h1 ^ (h2 << 1);
+		}
+	};
 }
 
 struct BlockCoords
@@ -96,6 +120,15 @@ struct BlockCoords
 		{
 			X >= 0 ? X / 16 : (X - 15) / 16,
 			Y >= 0 ? Y / 16 : (Y - 15) / 16,
+			Z >= 0 ? Z / 16 : (Z - 15) / 16
+		};
+	}
+
+	explicit operator ChunkCoords2D() const
+	{
+		return
+		{
+			X >= 0 ? X / 16 : (X - 15) / 16,
 			Z >= 0 ? Z / 16 : (Z - 15) / 16
 		};
 	}

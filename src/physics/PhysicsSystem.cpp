@@ -1,10 +1,10 @@
 #include "PhysicsSystem.h"
 
 #include <cmath>
+#include <algorithm>
 #include <glm/glm.hpp>
 #include "../ecs/ECS.h"
 #include "../ecs/Components.h"
-#include "../Logger.h"
 #include "../world/Block.h"
 #include "../world/World.h"
 #include "PhysicsUtils.h"
@@ -171,36 +171,34 @@ static void UpdateVertical(const World& world, PhysicsComponent& physics, Transf
 	if (input && (input->InputFlags & InputComponent::Jump) && !physics.Airborne)
 	{
 		physics.Velocity.Y = 0.42f;
-		physics.Airborne = true;
+	}
+	
+	// For cases where y velocity is > 1, have to check blocks in between for collisions. 
+	// It is impossible for x and z velocity to be > 1 on the other hand, so this is only handled for y
+	constexpr float step = 1.0f;
+	const float sign = physics.Velocity.Y > 0.0f ? 1.0f : -1.0f;
+	for (float remaining = physics.Velocity.Y * sign; remaining > 0.0f; remaining -= step)
+	{
+		transform.Position.Y += std::min(step, remaining) * sign;
+
+		float collisionCorrection = 0.0f;
+		if (sign > 0.0f)
+		{
+			collisionCorrection = CheckCollisionY<true>(world, physics.Collider, transform.Position);
+		}
+		else if (sign < 0.0f)
+		{
+			collisionCorrection = CheckCollisionY<false>(world, physics.Collider, transform.Position);
+		}
+		if (std::abs(collisionCorrection) > 0.0f)
+		{
+			physics.Velocity.Y = 0.0f;
+			transform.Position.Y += collisionCorrection;
+			break;
+		}
 	}
 
-	transform.Position.Y += physics.Velocity.Y;
-
-	float collisionCorrection = 0.0f;
-	if (physics.Velocity.Y > 0.0f)
-	{
-		collisionCorrection = CheckCollisionY<true>(world, physics.Collider, transform.Position);
-	}
-	else if (physics.Velocity.Y < 0.0f)
-	{
-		collisionCorrection = CheckCollisionY<false>(world, physics.Collider, transform.Position);
-	}
-
-	if (std::abs(collisionCorrection) > 0.0f)
-	{
-		physics.Velocity.Y = 0.0f;
-		transform.Position.Y += collisionCorrection;
-	}
-
-	if (physics.Airborne)
-	{
-		physics.Velocity.Y = (physics.Velocity.Y - 0.08f) * 0.98f;
-	}
-	else
-	{
-		physics.Velocity.Y = 0.0f;
-	}
-	LOG_INFO("{}", physics.Velocity.Y);
+	physics.Velocity.Y = (physics.Velocity.Y - 0.08f) * 0.98f;
 }
 
 

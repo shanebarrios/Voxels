@@ -7,6 +7,7 @@ class Chunk;
 class Camera;
 class UniformBuffer;
 
+// TODO: change this so that render takes all the chunks so Prepare() doesnt need to be exposed
 class ChunkRenderer
 {
 public:

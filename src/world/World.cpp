@@ -180,7 +180,6 @@ void World::LoadChunks()
 	{
 		ChunkCoords coords = m_ChunkLoadQueue.Data[m_ChunkLoadQueue.Index];
 		m_ChunkLoadQueue.Index++;
-		m_LoadedChunks[coords] = std::make_unique<Chunk>(coords);
-		
+		m_LoadedChunks[coords] = m_WorldGenerator.GenerateChunk(coords);
 	}
 }

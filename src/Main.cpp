@@ -48,6 +48,7 @@ int main()
 		{
 			LOG_INFO("fps: {}", numFrames);
 			LOG_INFO("tps: {}", numTicks);
+			std::cout << numFrames << "fps \n";
 			lastFPSUpdate = currentFrame;
 			numFrames = 0;
 			numTicks = 0;
