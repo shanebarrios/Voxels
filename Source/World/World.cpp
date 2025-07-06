@@ -20,8 +20,8 @@ int loaded = 0;
 World::World()
 {
 	RegisterComponents();
-	m_Player = EntityFactory::CreateDebugPlayer(m_ECS, { 0.0f, 50.0f, 0.0f });
-	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this, PlayerController::ControlMode::Debug);
+	m_Player = EntityFactory::CreatePlayer(m_ECS, { 0.0f, 50.0f, 0.0f });
+	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this, PlayerController::ControlMode::Default);
 
 	UpdateLoadedChunkQueue();
 	LoadChunks();

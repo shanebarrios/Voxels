@@ -12,7 +12,7 @@ uniform sampler2D u_ShadowMap;
 
 const vec3 k_LightDir = vec3(2.0f, -4.0f, 1.0f);
 const vec3 k_LightColor = vec3(1.0, 1.0, 0.8);
-const float k_AmbientFactor = 0.4;
+const float k_AmbientFactor = 0.3;
 const float k_DiffuseFactor = 0.9;
 
 float ShadowCalculation()
@@ -21,7 +21,8 @@ float ShadowCalculation()
 	projCoords = (projCoords + 1.0) / 2.0;
 	float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
-	return currentDepth > closestDepth ? 1.0 : 0.0;
+	const float bias = 0.005;
+	return currentDepth - bias > closestDepth ? 1.0 : 0.0;
 }
 
 void main()

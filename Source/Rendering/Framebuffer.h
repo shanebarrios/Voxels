@@ -2,38 +2,28 @@
 #include <cstdint>
 #include <vector>
 #include <optional>
-
-class Texture2D;
-
-struct FramebufferAttachment
-{
-	enum AttachmentType
-	{
-		Color,
-		Depth,
-		Stencil,
-		DepthStencil
-	};
-};
+#include <glad/glad.h>
+#include "Texture.h"
 
 class Framebuffer
 {
 public:
-	enum class Attachment
+	enum class AttachmentType
 	{
-		Color,
+		Color = GL_RGB,
 		Depth,
-		Stencil,
-		DepthStencil
+		Format
 	};
 
-	Framebuffer(int width, int height, const std::vector<Attachment>& attachments);
+	Framebuffer(int width, int height);
 	~Framebuffer();
 
 	Framebuffer(const Framebuffer&) = delete;
 	Framebuffer& operator=(const Framebuffer&) = delete;
 	Framebuffer(Framebuffer&&) noexcept;
 	Framebuffer& operator=(Framebuffer&&) noexcept;
+
+	void AddAttachment(Texture2D::Format attachmentFormat);
 
 	Texture2D GetColorAttachment(int index) const;
 
