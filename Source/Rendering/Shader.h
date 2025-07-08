@@ -20,14 +20,14 @@ public:
     enum ShaderUniform : uint8_t
     {
         UNIFORM_POSITION,
-        UNIFORM_VIEW,
-        UNIFORM_PROJECTION,
         UNIFORM_TEXTURE_ATLAS,
         UNIFORM_SHADOW_MAP,
+        UNIFORM_SUBFRUSTA_PLANES,
         UNIFORM_COUNT
     };
 
     Shader(std::string_view vertPath, std::string_view fragPath);
+    Shader(std::string_view vertPath, std::string_view fragPath, std::string_view geomPath);
     ~Shader();
 
     Shader(const Shader&) = delete;
@@ -90,6 +90,15 @@ public:
         glUniform3i(m_UniformLocations[uniform], x, y, z);
     }
 
+    void SetUniform(ShaderUniform uniform, int x, int y, int z, int w) const
+    {
+        glUniform4i(m_UniformLocations[uniform], x, y, z, w);
+    }
+
+    void SetUniform(ShaderUniform uniform, float x, float y, float z, float w) const
+    {
+        glUniform4f(m_UniformLocations[uniform], x, y, z, w);
+    }
 private:
     uint32_t m_ID{};
 

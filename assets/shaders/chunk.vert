@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 
 layout (location = 0) in uint a_Data;
 
@@ -6,7 +6,7 @@ layout (std140) uniform Matrices
 {
 	mat4 u_Projection;
 	mat4 u_View;
-	mat4 u_LightSpace;
+	mat4 u_LightSpace[4];
 };
 
 uniform ivec3 u_Position = ivec3(0);
@@ -14,7 +14,6 @@ uniform ivec3 u_Position = ivec3(0);
 out vec2 v_TexCoords;
 out vec3 v_Normal;
 out vec3 v_FragPos;
-out vec4 v_FragPosLightSpace;
 
 const vec3 k_FaceNormals[6] = vec3[]
 (
@@ -35,8 +34,6 @@ void main()
 		(a_Data >> 10u) & 0x1Fu
 	);
 
-	const float halfTexelSize = 1.0 / 999.0;
-
 	uint textureIndex = (a_Data >> 15u) & 0xFFu;
 	float u = (a_Data >> 23u) & 0x1u;
 	float v = (a_Data >> 24u) & 0x1u;
@@ -51,7 +48,6 @@ void main()
 		(15u - (textureIndex >> 4u) + v) / 16.0
 	);
 
-
 	v_FragPos = u_Position + chunkOffset;
 
 	vec4 worldPosition = vec4(u_Position + chunkOffset, 1.0);
@@ -59,8 +55,6 @@ void main()
 	{
 		worldPosition.y -= 0.05;
 	}
-
-	v_FragPosLightSpace = u_LightSpace * worldPosition;
 
 	gl_Position = u_Projection * u_View * worldPosition;
 }

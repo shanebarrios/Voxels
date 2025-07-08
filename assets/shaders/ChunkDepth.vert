@@ -1,13 +1,6 @@
-#version 330 core
+#version 460 core
 
 layout (location = 0) in uint a_Data;
-
-layout (std140) uniform Matrices
-{
-	mat4 u_Projection;
-	mat4 u_View;
-	mat4 u_LightSpace;
-};
 
 uniform ivec3 u_Position = ivec3(0);
 
@@ -34,5 +27,5 @@ void main()
 		(15u - (textureIndex >> 4u) + v) / 16.0
 	);
 
-	gl_Position = u_LightSpace * worldPosition;
+	gl_Position = worldPosition;
 }

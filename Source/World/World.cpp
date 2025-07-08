@@ -7,21 +7,23 @@
 #include "../Math/MathUtils.h"
 #include "../Logger.h"
 #include "ChunkUtils.h"
+#include "Rendering/Camera.h"
 
 // Through profiling, realized that rebuilding meshes was a huge bottleneck
 // Realized that 4x mesh rebuilds for every chunk load
 // Duplicated, so if I limit the amount of chunk remeshes and sort by distance to player (which chunk loads are already sorted by), 
 // would vastly reduce redundant remeshes
 
-constexpr int k_RenderDistance = 12;
 int remeshes = 0;
 int loaded = 0;
+
+static constexpr int k_LoadDistance = 16;
 
 World::World()
 {
 	RegisterComponents();
-	m_Player = EntityFactory::CreatePlayer(m_ECS, { 0.0f, 50.0f, 0.0f });
-	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this, PlayerController::ControlMode::Default);
+	m_Player = EntityFactory::CreateDebugPlayer(m_ECS, { 0.0f, 50.0f, 0.0f });
+	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this, PlayerController::ControlMode::Debug);
 
 	UpdateLoadedChunkQueue();
 	LoadChunks();
@@ -135,11 +137,11 @@ void World::UpdateLoadedChunkQueue()
 	m_ChunkLoadList.clear();
 	m_ChunkLoadIndex = 0;
 
-	for (int y = -k_RenderDistance; y <= k_RenderDistance; y++)
+	for (int y = -k_LoadDistance; y <= k_LoadDistance; y++)
 	{
-		for (int z = -k_RenderDistance; z <= k_RenderDistance; z++)
+		for (int z = -k_LoadDistance; z <= k_LoadDistance; z++)
 		{
-			for (int x = -k_RenderDistance; x <= k_RenderDistance; x++)
+			for (int x = -k_LoadDistance; x <= k_LoadDistance; x++)
 			{
 				ChunkCoords coords = playerChunkPosition + ChunkCoords{ x, y, z };
 				if (m_LoadedChunks.find(coords) == m_LoadedChunks.end())
@@ -168,7 +170,7 @@ void World::UnloadChunks()
 		const ChunkCoords chunkPos = it->first;
 
 		const ChunkCoords diff = chunkPos - playerChunkPosition;
-		if (std::abs(diff.X) > k_RenderDistance || std::abs(diff.Y) > k_RenderDistance || std::abs(diff.Z) > k_RenderDistance)
+		if (std::abs(diff.X) > k_LoadDistance || std::abs(diff.Y) > k_LoadDistance || std::abs(diff.Z) > k_LoadDistance)
 		{
 			it = m_LoadedChunks.erase(it);
 		}
@@ -212,27 +214,16 @@ void World::UpdateChunkMeshes()
 
 void World::UpdateChunkRenderList()
 {
-	//const ChunkCoords playerChunkPosition = static_cast<ChunkCoords>(m_ECS.GetComponent<TransformComponent>(m_Player).Position);
-	//m_ChunkRenderList.clear();
-	//for (Chunk* chunk : m_ChunksByDistance)
-	//{
-	//	if (chunk->GetMesh().NumTransparentVertices() != 0)
-	//	{
-	//		m_ChunkRenderList.push_back(chunk.get());
-	//	}
-	//}
-	//std::sort(m_ChunkRenderList.begin(), m_ChunkRenderList.end(), [playerChunkPosition](const Chunk* c1, const Chunk* c2)
-	//	{
-	//		const ChunkCoords diff1 = c1->GetCoords() - playerChunkPosition;
-	//		const ChunkCoords diff2 = c2->GetCoords() - playerChunkPosition;
-	//		return diff1.NormSq() > diff2.NormSq();
-	//	});
-
 	m_TransparentChunkRenderList.clear();
 	m_OpaqueChunkRenderList.clear();
+	const ChunkCoords playerPos = static_cast<ChunkCoords>(m_ECS.GetComponent<TransformComponent>(m_Player).Position);
 
 	for (const Chunk* chunk : m_ChunksByDistance)
 	{
+		const ChunkCoords diff = chunk->GetCoords() - playerPos;
+		if (std::abs(diff.X) > Camera::k_ChunkViewDistance ||
+			std::abs(diff.Y) > Camera::k_ChunkViewDistance ||
+			std::abs(diff.Z) > Camera::k_ChunkViewDistance) break;
 		const ChunkMesh& mesh = chunk->GetMesh();
 		if (mesh.NumOpaqueVertices() > 0)
 		{

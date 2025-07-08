@@ -11,6 +11,7 @@ struct ShaderProgramSource
 {
     std::string VertSource;
     std::string FragSource;
+    std::string GeomSource = "";
 };
 
 static std::string ReadFile(std::string_view path)
@@ -52,10 +53,15 @@ static uint32_t LinkSources(const ShaderProgramSource& sources)
 {
     const uint32_t vertId = CompileShader(sources.VertSource, GL_VERTEX_SHADER);
     const uint32_t fragId = CompileShader(sources.FragSource, GL_FRAGMENT_SHADER);
+    const uint32_t geomId = sources.GeomSource.length() > 0 ? CompileShader(sources.GeomSource, GL_GEOMETRY_SHADER) : 0;
 
     const uint32_t programId = glCreateProgram();
     glAttachShader(programId, vertId);
     glAttachShader(programId, fragId);
+    if (geomId)
+    {
+        glAttachShader(programId, geomId);
+    }
     glLinkProgram(programId);
 
     int32_t success;
@@ -74,12 +80,23 @@ static uint32_t LinkSources(const ShaderProgramSource& sources)
 
     glDeleteShader(vertId);
     glDeleteShader(fragId);
+    if (geomId)
+    {
+        glDeleteShader(geomId);
+    }
     return programId;
 }
 
 Shader::Shader(std::string_view vertPath, std::string_view fragPath)
 {
     const ShaderProgramSource sources = { ReadFile(vertPath), ReadFile(fragPath) };
+    m_ID = LinkSources(sources);
+    CacheUniformLocations();
+}
+
+Shader::Shader(std::string_view vertPath, std::string_view fragPath, std::string_view geomPath)
+{
+    const ShaderProgramSource sources = { ReadFile(vertPath), ReadFile(fragPath), ReadFile(geomPath) };
     m_ID = LinkSources(sources);
     CacheUniformLocations();
 }
@@ -137,8 +154,7 @@ int Shader::GetUniformLoc(std::string_view name) const
 void Shader::CacheUniformLocations()
 {
     m_UniformLocations[UNIFORM_POSITION] = GetUniformLoc("u_Position");
-    m_UniformLocations[UNIFORM_PROJECTION] = GetUniformLoc("u_Projection");
-    m_UniformLocations[UNIFORM_VIEW] = GetUniformLoc("u_View");
-    m_UniformLocations[UNIFORM_SHADOW_MAP] = GetUniformLoc("u_ShadowMap");
     m_UniformLocations[UNIFORM_TEXTURE_ATLAS] = GetUniformLoc("u_TextureAtlas");
+    m_UniformLocations[UNIFORM_SHADOW_MAP] = GetUniformLoc("u_ShadowMap");
+    m_UniformLocations[UNIFORM_SUBFRUSTA_PLANES] = GetUniformLoc("u_SubfrustaPlanes");
 }

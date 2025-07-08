@@ -18,10 +18,13 @@ public:
 
 	void Clear() const;
 private:
-	UniformBuffer m_MatrixUBO{3 * sizeof(glm::mat4)};	
+	UniformBuffer m_MatrixUBO{7 * sizeof(glm::mat4)};	
 	ChunkRenderer m_ChunkRenderer{ m_MatrixUBO };
 	BlockOutlineRenderer m_BlockOutlineRenderer{ m_MatrixUBO };
 	CrosshairRenderer m_CrosshairRenderer{};
 	uint32_t m_DepthMapFBO;
-	Texture2D m_DepthMap{ Texture2D::Attachment(1024, 1024, Texture2D::Format::Depth)};
+	uint32_t m_LightDepthMaps;
+	Shader m_FooShader;
+	VertexBuffer m_FooVBO;
+	VertexArray m_FooVAO{};
 };

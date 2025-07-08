@@ -24,6 +24,13 @@ extern float octaveMax;
 extern int remeshes;
 extern int loaded;
 
+// TODO:
+// Batch chunk meshes
+// Frustum culling
+// CSM
+// Ambient occlusion
+// Better terrain generation
+
 int main()
 {
 	Logger::Init();
@@ -45,6 +52,7 @@ int main()
 
 
 	LOG_INFO("Main loop running");
+	std::cout << glGetString(GL_VERSION) << '\n';
 
 	while (!window.ShouldClose())
 	{
