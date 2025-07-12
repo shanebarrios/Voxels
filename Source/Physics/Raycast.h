@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Coordinates.h"
-#include "../World/Block.h"
+#include "Utils/Coordinates.h"
+#include "World/Block.h"
 #include <optional>
 #include <functional>
 

@@ -3,7 +3,7 @@
 #include <array>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 static constexpr std::array<Key, GLFW_KEY_LAST + 1> GenerateKeyMappings()
 {
@@ -46,7 +46,8 @@ Window::Window(int width, int height, std::string_view name) : m_Width{ width },
     {
         Window::Init();
     }
-    m_Window = glfwCreateWindow(width, height, name.data(), glfwGetPrimaryMonitor(), nullptr);
+    //m_Window = glfwCreateWindow(width, height, name.data(), glfwGetPrimaryMonitor(), nullptr);
+    m_Window = glfwCreateWindow(width, height, name.data(), nullptr, nullptr);
     if (m_Window == nullptr)
     {
         LOG_ERROR("Failed to create window");
@@ -109,14 +110,8 @@ void Window::Update()
 
 void Window::FlushInput()
 {
-    if (1)
-    {
-        m_Input.m_Keys &= ~static_cast<uint64_t>(k_GlfwKeyMappings[GLFW_MOUSE_BUTTON_LEFT]);
-    }
-    if (1)
-    {
-        m_Input.m_Keys &= ~static_cast<uint64_t>(k_GlfwKeyMappings[GLFW_MOUSE_BUTTON_RIGHT]);
-    }
+    m_Input.m_Keys &= ~static_cast<uint64_t>(k_GlfwKeyMappings[GLFW_MOUSE_BUTTON_LEFT]);
+    m_Input.m_Keys &= ~static_cast<uint64_t>(k_GlfwKeyMappings[GLFW_MOUSE_BUTTON_RIGHT]);
 }
 
 void Window::Activate() const

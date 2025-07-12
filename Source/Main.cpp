@@ -8,14 +8,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include "Window.h"
 #include "Rendering/Camera.h"
 #include "Rendering/Renderer.h"
 #include "World/World.h"
-#include "ECS/ECS.h"
-#include "ECS/Components.h"
-#include "Math/Noise.h"
 
 extern float noiseMin;
 extern float noiseMax;
@@ -23,6 +20,7 @@ extern float octaveMin;
 extern float octaveMax;
 extern int remeshes;
 extern int loaded;
+extern int drawCalls;
 
 // TODO:
 // Batch chunk meshes
@@ -40,7 +38,7 @@ int main()
 
 	Camera camera{world.GetPlayerView()};
 
-	Renderer renderer{};
+	Renderer renderer{ 2560, 1440 };
 
 	constexpr float tickDelay = 1.0f / 20.0f;
 
@@ -73,12 +71,14 @@ int main()
 			LOG_INFO("loaded: {}", loaded);
 			const glm::vec3 cameraPos = camera.GetPosition();
 			LOG_INFO("pos: {}, {}, {}", cameraPos.x, cameraPos.y, cameraPos.z);
+			LOG_INFO("draw calls: {}", drawCalls);
 			loaded = 0;
 			remeshes = 0;
 			lastFPSUpdate = currentFrame;
 			numFrames = 0;
 			numTicks = 0;
 		}
+		drawCalls = 0;
 	
 		while (lag >= tickDelay)
 		{

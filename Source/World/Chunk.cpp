@@ -3,7 +3,7 @@
 #include "Math/Noise.h"
 #include <random>
 #include <cassert>
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 Chunk::Chunk() :
 	Chunk{ ChunkCoords {} }
@@ -29,17 +29,20 @@ BlockType Chunk::GetBlock(uint8_t x, uint8_t y, uint8_t z) const
 void Chunk::SetBlock(BlockType blockType, size_t i)
 {
 	m_NeedsRebuild = true;
+	m_PotentiallyHasBlocks = true;
 	m_Blocks[i] = blockType;
 }
 
 void Chunk::SetBlock(BlockType blockType, uint8_t x, uint8_t y, uint8_t z)
 {
 	m_NeedsRebuild = true;
+	m_PotentiallyHasBlocks = true;
 	m_Blocks[ChunkUtils::PackXYZ(x, y, z)] = blockType;
 }
 
 void Chunk::RebuildMesh(const World& world)
 {
+	if (!m_PotentiallyHasBlocks) return;
 	m_Mesh.Rebuild(*this, world);
 	m_NeedsRebuild = false;
 }

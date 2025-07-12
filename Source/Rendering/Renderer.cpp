@@ -2,38 +2,25 @@
 
 #include "Camera.h"
 #include "World/World.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 #include <array>
 #include <limits>
 
-static constexpr std::array k_CrosshairVertices
+using SubfrustumCorners = std::array<glm::vec3, 8>;
+using SubfrustaCorners = std::array<SubfrustumCorners, Camera::k_NumSubdivisions>;
+
+static constexpr int k_ShadowResolution = 4096;
+
+template <typename T>
+using SubfrustumArray = std::array<T, Camera::k_NumSubdivisions>;
+
+struct AABB
 {
-	-1.0f, -1.0f, 0.0f, 0.0f,
-	-1.0f,  1.0f, 0.0f, 1.0f,
-	 1.0f,  1.0f, 1.0f, 1.0f,
-	-1.0f, -1.0f, 0.0f, 0.0f,
-	 1.0f, -1.0f, 1.0f, 0.0f,
-	 1.0f,  1.0f, 1.0f, 1.0f
+	glm::vec3 Min;
+	glm::vec3 Max;
 };
 
-static void GetFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view, std::array<glm::vec3, 8>& corners)
-{
-	const glm::mat4 inverse = glm::inverse(proj * view);
-	int i = 0;
-	for (int x = -1; x <= 1; x+=2)
-	{
-		for (int y = -1; y <= 1; y+=2)
-		{
-			for (int z = -1; z <= 1; z+=2)
-			{
-				const glm::vec4 res = inverse * glm::vec4{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f };
-				corners[i++] = glm::vec3{ res / res.w };
-			}
-		}
-	}
-}
-
-static glm::vec3 GetFrustumMidpoint(const std::array<glm::vec3, 8>& corners)
+static glm::vec3 GetFrustumMidpoint(const SubfrustumCorners& corners)
 {
 	glm::vec3 sum{ 0.0f };
 	for (const glm::vec3& vec : corners)
@@ -43,42 +30,164 @@ static glm::vec3 GetFrustumMidpoint(const std::array<glm::vec3, 8>& corners)
 	return sum / 8.0f;
 }
 
-static glm::mat4 GetLightProjection(const std::array<glm::vec3, 8>& corners, const glm::mat4& view)
+static AABB GetLightAABBViewSpace(const SubfrustumCorners& corners, const glm::mat4& view)
 {
-	//const glm::vec3 right = glm::vec3{ view[0] };
-	//const glm::vec3 up = glm::vec3{ view[1] };
-	//const glm::vec3 forward = -glm::vec3{ view[2] };
+	AABB aabb
+	{ 
+		.Min = glm::vec3{ std::numeric_limits<float>::max() }, 
+		.Max = glm::vec3{ std::numeric_limits<float>::min()} 
+	};
+	for (const glm::vec3& vec : corners)
+	{
+		const glm::vec3 viewVec = view * glm::vec4{ vec, 1.0f };
+		aabb.Min = glm::min(aabb.Min, viewVec);
+		aabb.Max = glm::max(aabb.Max, viewVec);
+	}
 
-	float minX = std::numeric_limits<float>::max();
-	float maxX = std::numeric_limits<float>::lowest();
-	float minY = std::numeric_limits<float>::max();
-	float maxY = std::numeric_limits<float>::lowest();
-	float minZ = std::numeric_limits<float>::max();
-	float maxZ = std::numeric_limits<float>::lowest();
+	aabb.Min.z < 0.0f ? aabb.Min.z *= 10.0f : aabb.Min.z /= 10.0f;
+	aabb.Max.z < 0.0f ? aabb.Max.z /= 10.0f : aabb.Max.z *= 10.0f;
+
+	return aabb;
+}
+
+static AABB GetSubfrustaAABB(const SubfrustumCorners& corners)
+{
+	glm::vec3 min{ std::numeric_limits<float>::max() };
+	glm::vec3 max{ std::numeric_limits<float>::lowest() };
 
 	for (const glm::vec3& vec : corners)
 	{
-		const glm::vec4 viewVec = view * glm::vec4{ vec, 1.0f };
-		minX = std::min(minX, viewVec.x);
-		maxX = std::max(maxX, viewVec.x);
-		minY = std::min(minY, viewVec.y);
-		maxY = std::max(maxY, viewVec.y);
-		minZ = std::min(minZ, viewVec.z);
-		maxZ = std::max(maxZ, viewVec.z);
+		min = glm::min(min, vec);
+		max = glm::max(max, vec);
 	}
-	const float worldUnitsPerTexel = (maxX - minX) / 4096.0f;
-	minX = std::floor(minX / worldUnitsPerTexel) * worldUnitsPerTexel;
-	minY = std::floor(minY / worldUnitsPerTexel) * worldUnitsPerTexel;
-	maxX = std::floor(maxX / worldUnitsPerTexel) * worldUnitsPerTexel;
-	maxY = std::floor(maxY / worldUnitsPerTexel) * worldUnitsPerTexel;
 
-	minZ < 0 ? minZ *= 10.0f : minZ /= 10.0f;
-	maxZ < 0 ? maxZ /= 10.0f : maxZ *= 10.0f;
-	return glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+	const float padding = 32.0f;
+	min -= glm::vec3{ padding };
+	max += glm::vec3{ padding };
+
+	return AABB{ min, max };
 }
 
-Renderer::Renderer() :
-	m_FooShader{ASSETS_PATH "Shaders/Foo.vert", ASSETS_PATH "Shaders/Foo.frag"}
+static AABB GetChunkAABB(ChunkCoords coords)
+{
+	const glm::vec3 min{ coords.X * 16, coords.Y * 16, coords.Z * 16 };
+	const glm::vec3 max = min + glm::vec3{ 16.0f, 16.0f, 16.0f };
+	return AABB{ min, max };
+}
+
+static bool IsInsidePlane(const glm::vec3& pos, const Plane& plane)
+{
+	return glm::dot(pos - plane.P0, plane.Normal) >= 0.0f;
+}
+
+static bool CheckAABBIntersection(AABB a, AABB b)
+{
+	return
+		a.Min.x <= b.Max.x &&
+		a.Max.x >= b.Min.x &&
+		a.Min.y <= b.Max.y &&
+		a.Max.y >= b.Min.y &&
+		a.Min.z <= b.Max.z &&
+		a.Max.z >= b.Min.z;
+}
+
+static bool ChunkInFrustrum(ChunkCoords coords, const std::array<Plane, 6>& frustumPlanes)
+{
+	const glm::vec3 chunkWorldPos
+	{
+		coords.X * 16,
+		coords.Y * 16,
+		coords.Z * 16
+	};
+	std::array<glm::vec3, 8> chunkCorners
+	{
+		chunkWorldPos,
+		chunkWorldPos + glm::vec3{16.0f, 0.0f, 0.0f},
+		chunkWorldPos + glm::vec3{0.0f, 16.0f, 0.0f},
+		chunkWorldPos + glm::vec3{0.0f, 0.0f, 16.0f},
+		chunkWorldPos + glm::vec3{16.0f, 16.0f, 0.0f},
+		chunkWorldPos + glm::vec3{0.0f, 16.0f, 16.0f},
+		chunkWorldPos + glm::vec3{16.0f, 0.0f, 16.0f},
+		chunkWorldPos + glm::vec3{16.0f, 16.0f, 16.0f}
+	};
+
+	for (const Plane& plane : frustumPlanes)
+	{
+		bool allOutside = true;
+		for (const glm::vec3& corner : chunkCorners)
+		{
+			if (IsInsidePlane(corner, plane))
+			{
+				allOutside = false;
+				break;
+			}
+		}
+		if (allOutside)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+static bool ChunkInLightView(ChunkCoords coords, const std::array<AABB, Camera::k_NumSubdivisions>& aabbs)
+{
+	const AABB chunkAABB = GetChunkAABB(coords);
+	for (const AABB& aabb : aabbs)
+	{
+		if (CheckAABBIntersection(aabb, chunkAABB)) return true;
+	}
+	return false;
+}
+
+static std::vector<const Chunk*> GetChunkRenderList(
+	const std::vector<const Chunk*>& renderableChunks,
+	const Camera& camera)
+{
+	std::array<Plane, 6> frustumPlanes;
+	camera.GetFrustumPlanes(frustumPlanes);
+
+	std::vector<const Chunk*> ret{};
+	ret.reserve(renderableChunks.size() / 4);
+	for (const Chunk* chunk : renderableChunks)
+	{
+		if (ChunkInFrustrum(chunk->GetCoords(), frustumPlanes))
+		{
+			ret.push_back(chunk);
+		}
+	}
+	return ret;
+}
+
+//static std::vector<const Chunk*> GetChunkDepthRenderList(
+//	const std::vector<const Chunk*>& renderableChunks,
+//	const SubfrustumArray<AABB>& aabbs,
+//	const SubfrustumArray<glm::mat4>& viewMatrices)
+//{
+//	std::vector<const Chunk*> ret{};
+//	ret.reserve(renderableChunks.size() / 4);
+//	for (const Chunk* chunk : renderableChunks)
+//	{
+//		for (size_t i = 0; i < aabbs.size(); i++)
+//		{
+//
+//		}
+//		const AABB chunkAABB = GetChunkAABB(chunk->GetCoords());
+//		for (const AABB& subfrustaAABB : subfrustaAABBs)
+//		{
+//			if (CheckAABBIntersection(chunkAABB, subfrustaAABB))
+//			{
+//				ret.push_back(chunk);
+//				break;
+//			}
+//		}
+//	}
+//	return ret;
+//}
+
+Renderer::Renderer(int windowWidth, int windowHeight) :
+	m_WindowWidth{ windowWidth }, m_WindowHeight{ windowHeight },
+	m_DeferredFramebuffer{ windowWidth, windowHeight } 
 {
 	glClearColor(0.0f, 0.6f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
@@ -90,71 +199,74 @@ Renderer::Renderer() :
 	glEnable(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(1.0f, 1.0f);
 
-	uint32_t lightDepthMaps;
-	glGenTextures(1, &lightDepthMaps);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, lightDepthMaps);
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, 4096, 4096, 4, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-	constexpr float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	uint32_t depthMapFBO;
-	glGenFramebuffers(1, &depthMapFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, lightDepthMaps, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
-	int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE)
+	const FramebufferAttachment depthMapAttachment
 	{
-		LOG_ERROR("Failed to complete framebuffer");
-	}
+		.Format = FramebufferTextureFormat::Depth32F,
+		.Type = FramebufferTextureType::Texture2DArray,
+		.LayerCount = Camera::k_NumSubdivisions
+	};
+	m_ShadowFramebuffer.SetAttachments({ depthMapAttachment });
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	m_DepthMapFBO = depthMapFBO;
-	m_LightDepthMaps = lightDepthMaps;
+	const FramebufferAttachment positionAttachment
+	{
+		.Format = FramebufferTextureFormat::RGBA16F
+	};
 
-	m_FooVBO.SetData(k_CrosshairVertices.data(), k_CrosshairVertices.size());
-	m_FooVAO.SetVertexBuffer(m_FooVBO, BufferLayout{ {LayoutElementType::Float, 2}, {LayoutElementType::Float, 2} });
+	const FramebufferAttachment normalAttachment
+	{
+		.Format = FramebufferTextureFormat::RGBA16F
+	};
+
+	const FramebufferAttachment colorAttachment
+	{
+		.Format = FramebufferTextureFormat::RGBA8
+	};
+
+	m_DeferredFramebuffer.SetAttachments({ positionAttachment, normalAttachment, colorAttachment });
 }
 
 void Renderer::Render(const World& world, const Camera& camera) const
 {
-	static const glm::vec3 lightDir = glm::normalize(glm::vec3{ -1.0f, -1.0f, -1.0f });
+	static const glm::vec3 lightDir = glm::normalize(glm::vec3{ 0.6, -0.7, 0.2 });
 
 	const glm::mat4& view = camera.GetViewMatrix();
+	SubfrustumArray<AABB> subfrustaAABBs;
+	SubfrustumArray<glm::mat4> lightViewMatrices;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < Camera::k_NumSubdivisions; i++)
 	{
 		const glm::mat4& proj = camera.GetSubfrustaProjectionMatrix(i);
-		std::array<glm::vec3, 8> corners;
-		GetFrustumCornersWorldSpace(proj, view, corners);
+		SubfrustumCorners corners;
+		camera.GetSubfrustumCornersWorldSpace(corners, i);
 		const glm::vec3 frustumMidpoint = GetFrustumMidpoint(corners);
-		const glm::mat4 lightView = glm::lookAt(frustumMidpoint - lightDir, frustumMidpoint, glm::vec3{ 0.0f, 1.0f, 0.0f });
-		const glm::mat4 lightProj = GetLightProjection(corners, lightView);
-		const glm::mat4 lightProjView = lightProj * lightView;
+		lightViewMatrices[i] = glm::lookAt(frustumMidpoint - lightDir, frustumMidpoint, glm::vec3{0.0f, 1.0f, 0.0f});
+		const AABB lightAABB = GetLightAABBViewSpace(corners, lightViewMatrices[i]);
+		subfrustaAABBs[i] = lightAABB;
+		const glm::mat4 lightProj = glm::ortho(
+			lightAABB.Min.x, lightAABB.Max.x,
+			lightAABB.Min.y, lightAABB.Max.y,
+			lightAABB.Min.z, lightAABB.Max.z
+		);
+		const glm::mat4 lightProjView = lightProj * lightViewMatrices[i];
 		m_MatrixUBO.SetData((i + 2) * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightProjView));
 	}
 
 	m_MatrixUBO.SetData(0u, sizeof(glm::mat4), glm::value_ptr(camera.GetProjectionMatrix()));
 	m_MatrixUBO.SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 
-	glViewport(0, 0, 4096, 4096);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_DepthMapFBO);
+	std::vector<const Chunk*> chunkDepthRenderList = world.GetChunkRenderList();
+	std::vector<const Chunk*> chunkRenderList = GetChunkRenderList(chunkDepthRenderList, camera);
+
+	m_ShadowFramebuffer.Bind();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_BLEND);
-	m_ChunkRenderer.RenderDepth(world.GetOpaqueChunkRenderList(), world.GetTransparentChunkRenderList());
 
-	glViewport(0, 0, 2560, 1440);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	m_ChunkRenderer.RenderDepth(chunkRenderList);
+
+	m_ShadowFramebuffer.Unbind(2560, 1440);
 	glEnable(GL_BLEND);
-	
-	m_ChunkRenderer.Render(world.GetOpaqueChunkRenderList(), world.GetTransparentChunkRenderList(), m_LightDepthMaps, camera);
+
+	m_ChunkRenderer.Render(chunkRenderList, m_ShadowFramebuffer.GetDepthAttachment(), camera);
 	m_BlockOutlineRenderer.Render(world, camera);
 	m_CrosshairRenderer.Render();
 }

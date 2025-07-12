@@ -5,7 +5,7 @@
 #include <sstream>
 #include <cstring>
 
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 struct ShaderProgramSource
 {

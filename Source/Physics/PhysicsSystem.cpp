@@ -184,8 +184,6 @@ static void UpdateVertical(const World& world, PhysicsComponent& physics, Transf
 	physics.Velocity.Y = (physics.Velocity.Y - 0.08f) * 0.98f;
 }
 
-#include "Logger.h"
-
 void PhysicsSystem::Update(ECS& ecs, World& world)
 {
 	ComponentArray<PhysicsComponent>& arr = ecs.GetComponentArray<PhysicsComponent>();

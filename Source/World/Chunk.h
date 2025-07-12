@@ -2,7 +2,7 @@
 
 #include "Block.h"
 #include "ChunkMesh.h"
-#include "../Coordinates.h"
+#include "Utils/Coordinates.h"
 #include <array>
 #include <glm/glm.hpp>
 
@@ -42,4 +42,5 @@ private:
 	ChunkMesh m_Mesh{};
 
 	bool m_NeedsRebuild = true;
+	bool m_PotentiallyHasBlocks = false;
 };

@@ -47,8 +47,7 @@ public:
 
 	PlayerView GetPlayerView() const;
 	
-	const std::vector<const Chunk*>& GetOpaqueChunkRenderList() const { return m_OpaqueChunkRenderList; }
-	const std::vector<const Chunk*>& GetTransparentChunkRenderList() const { return m_TransparentChunkRenderList; }
+	const std::vector<const Chunk*>& GetChunkRenderList() const { return m_ChunkRenderList; }
 
 private:
 	ChunkMap m_LoadedChunks{};
@@ -59,8 +58,7 @@ private:
 	std::vector<ChunkCoords> m_ChunkLoadList{};
 	size_t m_ChunkLoadIndex = 0;
 	std::vector<Chunk*> m_ChunksByDistance{};
-	std::vector<const Chunk*> m_OpaqueChunkRenderList{};
-	std::vector<const Chunk*> m_TransparentChunkRenderList{};
+	std::vector<const Chunk*> m_ChunkRenderList{};
 	WorldGenerator m_WorldGenerator{this};
 	
 	void RegisterComponents();

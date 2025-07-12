@@ -2,7 +2,7 @@
 
 #include <cmath>
 #include <numbers>
-#include "Coordinates.h"
+#include "Utils/Coordinates.h"
 
 namespace MathUtils
 {

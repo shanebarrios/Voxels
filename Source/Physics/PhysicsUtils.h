@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../Coordinates.h"
-#include "../ECS/Components.h"
+#include "Utils/Coordinates.h"
+#include "ECS/Components.h"
 
 namespace PhysicsUtils
 {

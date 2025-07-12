@@ -1,11 +1,11 @@
 #include "World.h"
 #include <algorithm>
-#include "../ECS/EntityFactory.h"
-#include "../ECS/Components.h"
-#include "../Physics/PhysicsSystem.h"
-#include "../Window.h"
-#include "../Math/MathUtils.h"
-#include "../Logger.h"
+#include "ECS/EntityFactory.h"
+#include "ECS/Components.h"
+#include "Physics/PhysicsSystem.h"
+#include "Window.h"
+#include "Math/MathUtils.h"
+#include "Utils/Logger.h"
 #include "ChunkUtils.h"
 #include "Rendering/Camera.h"
 
@@ -214,8 +214,7 @@ void World::UpdateChunkMeshes()
 
 void World::UpdateChunkRenderList()
 {
-	m_TransparentChunkRenderList.clear();
-	m_OpaqueChunkRenderList.clear();
+	m_ChunkRenderList.clear();
 	const ChunkCoords playerPos = static_cast<ChunkCoords>(m_ECS.GetComponent<TransformComponent>(m_Player).Position);
 
 	for (const Chunk* chunk : m_ChunksByDistance)
@@ -225,13 +224,9 @@ void World::UpdateChunkRenderList()
 			std::abs(diff.Y) > Camera::k_ChunkViewDistance ||
 			std::abs(diff.Z) > Camera::k_ChunkViewDistance) break;
 		const ChunkMesh& mesh = chunk->GetMesh();
-		if (mesh.NumOpaqueVertices() > 0)
+		if (mesh.NumOpaqueVertices() > 0 || mesh.NumTransparentVertices() > 0)
 		{
-			m_OpaqueChunkRenderList.push_back(chunk);
-		}
-		if (mesh.NumTransparentVertices() > 0)
-		{
-			m_TransparentChunkRenderList.push_back(chunk);
+			m_ChunkRenderList.push_back(chunk);
 		}
 	}
 }

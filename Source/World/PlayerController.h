@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ECS/ECS.h"
-#include "Coordinates.h"
+#include "Utils/Coordinates.h"
 #include "Block.h"
 #include <optional>
 

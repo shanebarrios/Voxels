@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "Physics/Raycast.h"
 #include "Camera.h"
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 static constexpr std::array<int, 72> k_OutlineVertices{
     0, 0, 0, 1, 0, 0,

@@ -4,8 +4,6 @@ layout (location = 0) in uint a_Data;
 
 uniform ivec3 u_Position = ivec3(0);
 
-out vec2 v_TexCoords;
-
 void main()
 {
 	ivec3 chunkOffset = ivec3
@@ -16,16 +14,16 @@ void main()
 	);
 
 	uint textureIndex = (a_Data >> 15u) & 0xFFu;
-	float u = (a_Data >> 23u) & 0x1u;
-	float v = (a_Data >> 24u) & 0x1u;
+
+	// Quick hack to prevent water from casting shadows
+	const uint waterIndex = 8;
+	if (textureIndex == waterIndex)
+	{
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
 
 	vec4 worldPosition = vec4(u_Position + chunkOffset, 1.0);
-
-	v_TexCoords = vec2
-	(
-		((textureIndex & 0xFu) + u) / 16.0,
-		(15u - (textureIndex >> 4u) + v) / 16.0
-	);
 
 	gl_Position = worldPosition;
 }

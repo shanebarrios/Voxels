@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #include <glad/glad.h>
 #include <cassert>
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 static Texture2D::Format FormatFromChannels(int numChannels)
 {
@@ -86,26 +86,6 @@ Texture2D Texture2D::FromPath(std::string_view path)
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, static_cast<GLenum>(format), type, data);
     //glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
-    return Texture2D{ id, format, width, height };
-}
-
-Texture2D Texture2D::Attachment(int width, int height, Format format)
-{
-    uint32_t id;
-    glGenTextures(1, &id);
-    glBindTexture(GL_TEXTURE_2D, id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-    constexpr float bordercolor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, bordercolor);
-
-    const GLenum internalFormat = FormatToInternal(format);
-    const GLenum type = FormatToType(format);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, static_cast<GLenum>(format), type, nullptr);
     return Texture2D{ id, format, width, height };
 }
 

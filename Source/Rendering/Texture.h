@@ -30,7 +30,6 @@ public:
 	Texture2D() = default;
 
 	static Texture2D FromPath(std::string_view path);
-	static Texture2D Attachment(int width, int height, Format format);
 
 	~Texture2D();
 
