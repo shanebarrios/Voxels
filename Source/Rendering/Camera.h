@@ -17,7 +17,7 @@ struct Plane
 
 class Camera {
 public:
-    static constexpr int k_ChunkViewDistance = 12;
+    static constexpr int k_ChunkViewDistance = 16;
     static constexpr int k_NumSubdivisions = 4;
 
     Camera();

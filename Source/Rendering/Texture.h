@@ -5,6 +5,28 @@
 #include <memory>
 #include <array>
 
+enum class TextureWrap
+{
+	Repeat = GL_REPEAT,
+	MirroredRepeat = GL_MIRRORED_REPEAT,
+	ClampToEdge = GL_CLAMP_TO_EDGE,
+	ClampToBorder = GL_CLAMP_TO_BORDER
+};
+
+enum class TextureInternalFormat
+{
+	None,
+	R8,
+	RG8,
+	RGB8,
+	RGBA8,
+	RGBA16F,
+	RGBA32F,
+	Depth32F,
+	Depth24Stencil8,
+	Depth24
+};
+
 class Texture
 {
 public:
@@ -16,20 +38,13 @@ public:
 class Texture2D : public Texture
 {
 public:
-	enum class Format
-	{
-		R = GL_RED,
-		RG = GL_RG,
-		RGB = GL_RGB,
-		RGBA = GL_RGBA,
-		Depth = GL_DEPTH_COMPONENT,
-		Stencil = GL_STENCIL_INDEX,
-		DepthStencil = GL_DEPTH_STENCIL
-	};
-
 	Texture2D() = default;
 
-	static Texture2D FromPath(std::string_view path);
+	static Texture2D FromPath(std::string_view path, 
+		TextureWrap wrapMethod = TextureWrap::ClampToEdge);
+
+	static Texture2D FromData(const void* data, int width, int height, 
+		TextureInternalFormat format, TextureWrap wrapMethod = TextureWrap::ClampToEdge);
 
 	~Texture2D();
 
@@ -43,15 +58,20 @@ public:
 
 	int GetWidth() const { return m_Width; }
 	int GetHeight() const { return m_Height; }
-	Format GetFormat() const { return m_Format; }
+	TextureInternalFormat GetInternalFormat() const { return m_Format; }
 
 private:
-	explicit Texture2D(uint32_t id, Format format, int width, int height);
+	explicit Texture2D(uint32_t id, TextureInternalFormat format, int width, int height);
 
 	uint32_t m_ID = 0;
-	Format m_Format = Format::R;
+	TextureInternalFormat m_Format = TextureInternalFormat::R8;
 	int m_Width = 0;
 	int m_Height = 0;
+};
+
+class Texture2DArray : public Texture
+{
+	Texture2DArray() = default;
 };
 
 //class TextureCube : public Texture

@@ -31,6 +31,6 @@ uint32_t GetTextureIndex(BlockFace face, BlockType blockType);
 
 bool IsTransparent(BlockType blockType);
 
-bool IsSemiTransparent(BlockType blockType);
+bool IsTranslucent(BlockType blockType);
 
 bool IsInteractable(BlockType blockType);

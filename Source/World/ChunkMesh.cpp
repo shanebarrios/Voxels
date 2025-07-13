@@ -121,7 +121,10 @@ void ChunkMesh::HandleBlock(const Chunk& chunk, const World& world, size_t i)
 
 		const BlockType neighborBlock = GetBlock(chunk, world, neighborCoords);
 
-		if (!IsTransparent(neighborBlock) || neighborBlock == block) continue;
+		if ((!IsTranslucent(block) && !IsTranslucent(neighborBlock)) ||
+			(IsTransparent(block) && neighborBlock != BlockType::Air)) continue;
+
+		//if (!IsTransparent(neighborBlock) || neighborBlock == block) continue;
 
 		AddFace(chunk, world, static_cast<BlockFace>(face), block, localCoords);
 	}
@@ -140,7 +143,7 @@ void ChunkMesh::AddFace(const Chunk& chunk, const World& world, BlockFace face, 
 		{
 			//vertex.SetFlagTopOfWater();
 		}
-		if (IsTransparent(blockType))
+		if (blockType == BlockType::Water)
 		{
 			s_TransparentBuffer[m_TransparentBufferIndex++] = vertex;
 		}

@@ -13,10 +13,12 @@ class ChunkRenderer
 public:
 	explicit ChunkRenderer(const UniformBuffer& cameraUBO);
 
+	void RenderGBuffer(const std::vector<const Chunk*>& chunkList) const;
 	void RenderDepth(const std::vector<const Chunk*>& chunkList) const;
-	void Render(const std::vector<const Chunk*>& chunkList, uint32_t lightDepthMaps, const Camera& camera) const;
+	void RenderWater(const std::vector<const Chunk*>& chunkList) const;
 private:
 	Texture2D m_TextureAtlas;
-	Shader m_Shader;
+	Shader m_GBufferShader;
 	Shader m_DepthShader;
+	Shader m_WaterShader;
 };

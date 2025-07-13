@@ -144,10 +144,6 @@ void Shader::BindUniformBlock(uint32_t bindingPoint, std::string_view name) cons
 int Shader::GetUniformLoc(std::string_view name) const
 {
     const int ret = glGetUniformLocation(m_ID, name.data());
-    if (ret == -1)
-    {
-        LOG_WARN("Can not find uniform {} in shader", name);
-    }
     return ret;
 }
 
@@ -157,4 +153,11 @@ void Shader::CacheUniformLocations()
     m_UniformLocations[UNIFORM_TEXTURE_ATLAS] = GetUniformLoc("u_TextureAtlas");
     m_UniformLocations[UNIFORM_SHADOW_MAP] = GetUniformLoc("u_ShadowMap");
     m_UniformLocations[UNIFORM_SUBFRUSTA_PLANES] = GetUniformLoc("u_SubfrustaPlanes");
+    m_UniformLocations[UNIFORM_POSITION_SAMPLER] = GetUniformLoc("u_PositionSampler");
+    m_UniformLocations[UNIFORM_NORMAL_SAMPLER] = GetUniformLoc("u_NormalSampler");
+    m_UniformLocations[UNIFORM_ALBEDO_SAMPLER] = GetUniformLoc("u_AlbedoSampler");
+    m_UniformLocations[UNIFORM_NOISE_SAMPLER] = GetUniformLoc("u_NoiseSampler");
+    m_UniformLocations[UNIFORM_SAMPLES] = GetUniformLoc("u_Samples");
+    m_UniformLocations[UNIFORM_TRANSFORM] = GetUniformLoc("u_Transform");
+    m_UniformLocations[UNIFORM_LIGHT_DIR] = GetUniformLoc("u_LightDir");
 }

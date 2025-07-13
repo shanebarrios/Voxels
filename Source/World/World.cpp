@@ -215,6 +215,7 @@ void World::UpdateChunkMeshes()
 void World::UpdateChunkRenderList()
 {
 	m_ChunkRenderList.clear();
+	m_WaterRenderList.clear();
 	const ChunkCoords playerPos = static_cast<ChunkCoords>(m_ECS.GetComponent<TransformComponent>(m_Player).Position);
 
 	for (const Chunk* chunk : m_ChunksByDistance)
@@ -224,9 +225,13 @@ void World::UpdateChunkRenderList()
 			std::abs(diff.Y) > Camera::k_ChunkViewDistance ||
 			std::abs(diff.Z) > Camera::k_ChunkViewDistance) break;
 		const ChunkMesh& mesh = chunk->GetMesh();
-		if (mesh.NumOpaqueVertices() > 0 || mesh.NumTransparentVertices() > 0)
+		if (mesh.NumOpaqueVertices() > 0)
 		{
 			m_ChunkRenderList.push_back(chunk);
+		}
+		if (mesh.NumTransparentVertices() > 0)
+		{
+			m_WaterRenderList.push_back(chunk);
 		}
 	}
 }

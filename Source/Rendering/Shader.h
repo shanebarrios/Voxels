@@ -4,13 +4,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string_view>
-#include <memory>
-#include <string>
+#include <string_view>
 #include <cstdint>
 #include <array>
-#include <unordered_set>
-
-// TODO: Cache uniform locations
 
 class UniformBuffer;
 
@@ -23,6 +19,13 @@ public:
         UNIFORM_TEXTURE_ATLAS,
         UNIFORM_SHADOW_MAP,
         UNIFORM_SUBFRUSTA_PLANES,
+        UNIFORM_POSITION_SAMPLER,
+        UNIFORM_NORMAL_SAMPLER,
+        UNIFORM_ALBEDO_SAMPLER,
+        UNIFORM_NOISE_SAMPLER,
+        UNIFORM_SAMPLES,
+        UNIFORM_TRANSFORM,
+        UNIFORM_LIGHT_DIR,
         UNIFORM_COUNT
     };
 
@@ -99,6 +102,17 @@ public:
     {
         glUniform4f(m_UniformLocations[uniform], x, y, z, w);
     }
+
+    void SetUniform(ShaderUniform uniform, const float* vs, size_t count) const
+    {
+        glUniform1fv(m_UniformLocations[uniform], count, vs);
+    }
+
+    void SetUniform(ShaderUniform uniform, const glm::vec3* vs, size_t count) const
+    {
+        glUniform3fv(m_UniformLocations[uniform], count, glm::value_ptr(vs[0]));
+    }
+
 private:
     uint32_t m_ID{};
 

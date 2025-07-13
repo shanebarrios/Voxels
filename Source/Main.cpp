@@ -91,8 +91,6 @@ int main()
 			window.FlushInput();
 		}
 
-		renderer.Clear();
-
 		const float alpha = lag / tickDelay;
 		camera.Update(window.GetInput(), alpha);
 

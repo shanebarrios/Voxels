@@ -2,63 +2,124 @@
 #include <glad/glad.h>
 #include "Utils/Logger.h"
 
-static bool IsDepthAttachment(FramebufferTextureFormat format)
+static bool IsColorAttachment(FramebufferAttachmentFormat format)
 {
 	switch (format)
 	{
-	case FramebufferTextureFormat::Depth32F:
-		return true;
-	default:
+	case FramebufferAttachmentFormat::Depth32F:
+	case FramebufferAttachmentFormat::Depth24Stencil8:
+	case FramebufferAttachmentFormat::Depth24:
 		return false;
+	default:
+		return true;
+	}
+}
+static GLenum AttachmentFormatToAttachment(FramebufferAttachmentFormat format, uint8_t numColorAttachments)
+{
+	switch (format)
+	{
+	case FramebufferAttachmentFormat::Depth32F:
+	case FramebufferAttachmentFormat::Depth24:
+		return GL_DEPTH_ATTACHMENT;
+	case FramebufferAttachmentFormat::Depth24Stencil8:
+		return GL_DEPTH_STENCIL_ATTACHMENT;
+	default:
+		return GL_COLOR_ATTACHMENT0 + numColorAttachments;
 	}
 }
 
-static GLenum TextureTypeToTarget(FramebufferTextureType type)
+static bool IsTextureAttachment(FramebufferAttachmentType type)
 {
 	switch (type)
 	{
-	case FramebufferTextureType::Texture2D:
+	case FramebufferAttachmentType::Renderbuffer:
+		return false;
+	default:
+		return true;
+	}
+}
+
+static GLenum AttachmentTypeToTarget(FramebufferAttachmentType type)
+{
+	switch (type)
+	{
+	case FramebufferAttachmentType::Texture2D:
 		return GL_TEXTURE_2D;
-	case FramebufferTextureType::Texture2DArray:
+	case FramebufferAttachmentType::Texture2DArray:
 		return GL_TEXTURE_2D_ARRAY;
+	case FramebufferAttachmentType::Renderbuffer:
+		return GL_RENDERBUFFER;
 	}
 }
 
-static GLenum TextureFormatToInternalGL(FramebufferTextureFormat format)
+static GLenum AttachmentFormatToInternalGL(FramebufferAttachmentFormat format)
 {
 	switch (format)
 	{
-	case FramebufferTextureFormat::RGBA8:
+	case FramebufferAttachmentFormat::R32F:
+		return GL_R32F;
+	case FramebufferAttachmentFormat::R8:
+		return GL_R8;
+	case FramebufferAttachmentFormat::RG8:
+		return GL_RG8;
+	case FramebufferAttachmentFormat::RGB8:
+		return GL_RGB8;
+	case FramebufferAttachmentFormat::RGBA8:
 		return GL_RGBA8;
-	case FramebufferTextureFormat::RGBA16F:
+	case FramebufferAttachmentFormat::RGBA16F:
 		return GL_RGBA16F;
-	case FramebufferTextureFormat::Depth32F:
+	case FramebufferAttachmentFormat::RGBA32F:
+		return GL_RGBA32F;
+	case FramebufferAttachmentFormat::Depth32F:
 		return GL_DEPTH_COMPONENT32F;
+	case FramebufferAttachmentFormat::Depth24Stencil8:
+		return GL_DEPTH24_STENCIL8;
+	case FramebufferAttachmentFormat::Depth24:
+		return GL_DEPTH_COMPONENT24;
 	}
 }
 
-static GLenum TextureFormatToGL (FramebufferTextureFormat format)
+static GLenum AttachmentFormatToGL (FramebufferAttachmentFormat format)
 {
 	switch (format)
 	{
-	case FramebufferTextureFormat::RGBA8:
-	case FramebufferTextureFormat::RGBA16F:
+	case FramebufferAttachmentFormat::R32F:
+	case FramebufferAttachmentFormat::R8:
+		return GL_RED;
+	case FramebufferAttachmentFormat::RG8:
+		return GL_RG;
+	case FramebufferAttachmentFormat::RGB8:
+		return GL_RGB;
+	case FramebufferAttachmentFormat::RGBA8:
+	case FramebufferAttachmentFormat::RGBA16F:
+	case FramebufferAttachmentFormat::RGBA32F:
 		return GL_RGBA;
-	case FramebufferTextureFormat::Depth32F:
+	case FramebufferAttachmentFormat::Depth32F:
+	case FramebufferAttachmentFormat::Depth24:
 		return GL_DEPTH_COMPONENT;
+	case FramebufferAttachmentFormat::Depth24Stencil8:
+		return GL_DEPTH_STENCIL;
 	}
 }
 
-static GLenum TextureFormatToType(FramebufferTextureFormat format)
+static GLenum AttachmentFormatToType(FramebufferAttachmentFormat format)
 {
 	switch (format)
 	{
-	case FramebufferTextureFormat::RGBA8:
+	case FramebufferAttachmentFormat::R8:
+	case FramebufferAttachmentFormat::RG8:
+	case FramebufferAttachmentFormat::RGB8:
+	case FramebufferAttachmentFormat::RGBA8:
 		return GL_UNSIGNED_BYTE;
-	case FramebufferTextureFormat::RGBA16F:
+	case FramebufferAttachmentFormat::R32F:
+	case FramebufferAttachmentFormat::RGBA16F:
+	case FramebufferAttachmentFormat::RGBA32F:
+	case FramebufferAttachmentFormat::Depth32F:
 		return GL_FLOAT;
-	case FramebufferTextureFormat::Depth32F:
-		return GL_FLOAT;
+	case FramebufferAttachmentFormat::Depth24Stencil8:
+		return GL_UNSIGNED_INT_24_8;
+	case FramebufferAttachmentFormat::Depth24:
+		return GL_UNSIGNED_INT;
 	}
 }
 
@@ -94,51 +155,26 @@ void Framebuffer::SetAttachments(const std::vector<FramebufferAttachment>& attac
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
 
-	glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
-	glDeleteTextures(1, &m_DepthAttachment);
+	glDeleteTextures(m_TextureAttachments.size(), m_TextureAttachments.data());
+	glDeleteRenderbuffers(m_RenderbufferAttachments.size(), m_RenderbufferAttachments.data());
 
-	m_DepthAttachment = 0;
-	m_ColorAttachments.clear();
+	m_TextureAttachments.clear();
+	m_RenderbufferAttachments.clear();
+	m_NumColorAttachments = 0;
 
 	for (const FramebufferAttachment& attachment : attachments)
 	{
-		const GLenum target = TextureTypeToTarget(attachment.Type);
-		const GLenum internalFormat = TextureFormatToInternalGL(attachment.Format);
-		const GLenum format = TextureFormatToGL(attachment.Format);
-		const GLenum type = TextureFormatToType(attachment.Format);
-		const GLenum attachmentType = IsDepthAttachment(attachment.Format) ?
-			GL_DEPTH_ATTACHMENT :
-			GL_COLOR_ATTACHMENT0 + m_ColorAttachments.size();
-
-		uint32_t id;
-		glGenTextures(1, &id);
-		glBindTexture(target, id);
-		if (target == GL_TEXTURE_2D)
+		if (IsTextureAttachment(attachment.Type))
 		{
-			glTexImage2D(target, 0, internalFormat, m_Width, m_Height, 0, format, type, nullptr);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, target, id, 0);
-		}
-		else if (target == GL_TEXTURE_2D_ARRAY)
-		{
-			glTexImage3D(target, 0, internalFormat, m_Width, m_Height, attachment.LayerCount, 0, format, type, nullptr);
-			glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, id, 0);
-		}
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-		if (IsDepthAttachment(attachment.Format))
-		{
-			m_DepthAttachment = id;
+			AddTextureAttachment(attachment);
 		}
 		else
 		{
-			m_ColorAttachments.push_back(id);
+			AddRenderbufferAttachment(attachment);
 		}
 	}
 
-	glDrawBuffers(m_ColorAttachments.size(), k_ColorAttachmentEnums.data());
+	glDrawBuffers(m_NumColorAttachments, k_ColorAttachmentEnums.data());
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
@@ -158,13 +194,13 @@ Framebuffer::Framebuffer(Framebuffer&& other) noexcept :
 	m_ID{ other.m_ID },
 	m_Width{ other.m_Width },
 	m_Height{ other.m_Height },
-	m_Renderbuffer{ other.m_Renderbuffer },
-	m_ColorAttachments{ std::move(other.m_ColorAttachments) }
+	m_NumColorAttachments{ other.m_NumColorAttachments },
+	m_TextureAttachments{ std::move(other.m_TextureAttachments) },
+	m_RenderbufferAttachments{ std::move(other.m_RenderbufferAttachments) }
 {
 	other.m_ID = 0;
-	other.m_Renderbuffer = 0;
-	other.m_DepthAttachment = 0;
-	other.m_ColorAttachments.clear();
+	other.m_TextureAttachments.clear();
+	other.m_RenderbufferAttachments.clear();
 }
 
 Framebuffer& Framebuffer::operator=(Framebuffer&& other) noexcept
@@ -176,24 +212,73 @@ Framebuffer& Framebuffer::operator=(Framebuffer&& other) noexcept
 	m_ID = other.m_ID;
 	m_Width = other.m_Width;
 	m_Height = other.m_Height;
-	m_Renderbuffer = other.m_Renderbuffer;
-	m_DepthAttachment = other.m_DepthAttachment;
-	m_ColorAttachments = std::move(other.m_ColorAttachments);
+	m_TextureAttachments = std::move(other.m_TextureAttachments);
+	m_RenderbufferAttachments = std::move(other.m_RenderbufferAttachments);
 
 	other.m_ID = 0;
-	other.m_Renderbuffer = 0;
-	other.m_DepthAttachment = 0;
-	other.m_ColorAttachments.clear();
+	other.m_TextureAttachments.clear();
+	other.m_RenderbufferAttachments.clear();
 
 	return *this;
+}
+
+void Framebuffer::AddTextureAttachment(const FramebufferAttachment& attachment)
+{
+	const GLenum target = AttachmentTypeToTarget(attachment.Type);
+	const GLenum internalFormat = AttachmentFormatToInternalGL(attachment.Format);
+	const GLenum format = AttachmentFormatToGL(attachment.Format);
+	const GLenum type = AttachmentFormatToType(attachment.Format);
+	const GLenum attachmentType = AttachmentFormatToAttachment(attachment.Format, m_NumColorAttachments);
+
+	uint32_t id;
+	glGenTextures(1, &id);
+	glBindTexture(target, id);
+	if (target == GL_TEXTURE_2D)
+	{
+		glTexImage2D(target, 0, internalFormat, m_Width, m_Height, 0, format, type, nullptr);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, target, id, 0);
+	}
+	else if (target == GL_TEXTURE_2D_ARRAY)
+	{
+		glTexImage3D(target, 0, internalFormat, m_Width, m_Height, attachment.LayerCount, 0, format, type, nullptr);
+		glFramebufferTexture(GL_FRAMEBUFFER, attachmentType, id, 0);
+	}
+	glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+	m_TextureAttachments.push_back(id);
+
+	if (IsColorAttachment(attachment.Format))
+	{
+		m_NumColorAttachments++;
+	}
+}
+
+void Framebuffer::AddRenderbufferAttachment(const FramebufferAttachment& attachment)
+{
+	const GLenum internalFormat = AttachmentFormatToInternalGL(attachment.Format);
+	const GLenum attachmentType = AttachmentFormatToAttachment(attachment.Format, m_NumColorAttachments);
+
+	uint32_t id;
+	glGenRenderbuffers(1, &id);
+	glBindRenderbuffer(GL_RENDERBUFFER, id);
+	glRenderbufferStorage(GL_RENDERBUFFER, internalFormat, m_Width, m_Height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachmentType, GL_RENDERBUFFER, id);
+	m_RenderbufferAttachments.push_back(id);
+
+	if (IsColorAttachment(attachment.Format))
+	{
+		m_NumColorAttachments++;
+	}
 }
 
 void Framebuffer::Destroy()
 {
 	glDeleteFramebuffers(1, &m_ID);
-	glDeleteTextures(m_ColorAttachments.size(), m_ColorAttachments.data());
-	glDeleteTextures(1, &m_DepthAttachment);
-	glDeleteRenderbuffers(1, &m_Renderbuffer);
+	glDeleteTextures(m_TextureAttachments.size(), m_TextureAttachments.data());
+	glDeleteRenderbuffers(m_RenderbufferAttachments.size(), m_RenderbufferAttachments.data());
 }
 
 void Framebuffer::Bind() const

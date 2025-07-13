@@ -30,8 +30,6 @@ struct PlayerView
 	const LookComponent* Look;
 };
 
-constexpr size_t k_MaxRenderDistance = 12;
-
 class World
 {
 public:
@@ -49,6 +47,8 @@ public:
 	
 	const std::vector<const Chunk*>& GetChunkRenderList() const { return m_ChunkRenderList; }
 
+	const std::vector<const Chunk*>& GetChunkWaterRenderList() const { return m_WaterRenderList; }
+
 private:
 	ChunkMap m_LoadedChunks{};
 	ECS m_ECS{};
@@ -59,6 +59,7 @@ private:
 	size_t m_ChunkLoadIndex = 0;
 	std::vector<Chunk*> m_ChunksByDistance{};
 	std::vector<const Chunk*> m_ChunkRenderList{};
+	std::vector<const Chunk*> m_WaterRenderList{};
 	WorldGenerator m_WorldGenerator{this};
 	
 	void RegisterComponents();

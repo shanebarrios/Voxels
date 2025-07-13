@@ -3,23 +3,31 @@
 #include <vector>
 #include <array>
 
-enum class FramebufferTextureFormat
+enum class FramebufferAttachmentFormat
 {
+	R32F,
+	R8,
+	RG8,
+	RGB8,
 	RGBA8,
 	RGBA16F,
-	Depth32F
+	RGBA32F,
+	Depth32F,
+	Depth24Stencil8,
+	Depth24
 };
 
-enum class FramebufferTextureType
+enum class FramebufferAttachmentType
 {
 	Texture2D,
-	Texture2DArray
+	Texture2DArray,
+	Renderbuffer
 };
 
 struct FramebufferAttachment
 {
-	FramebufferTextureFormat Format;
-	FramebufferTextureType Type = FramebufferTextureType::Texture2D;
+	FramebufferAttachmentFormat Format;
+	FramebufferAttachmentType Type = FramebufferAttachmentType::Texture2D;
 	uint32_t LayerCount = 1;
 };
 
@@ -37,9 +45,9 @@ public:
 
 	void SetAttachments(const std::vector<FramebufferAttachment>& attachments);
 
-	uint32_t GetDepthAttachment() const { return m_DepthAttachment; };
+	uint32_t GetTextureAttachment(size_t index) const { return m_TextureAttachments[index]; }
 
-	uint32_t GetColorAttachment(size_t index) const { return m_ColorAttachments[index]; }
+	uint32_t GetId() const { return m_ID; }
 
 	void Bind() const;
 
@@ -50,9 +58,13 @@ private:
 	int m_Width = 0;
 	int m_Height = 0;
 
-	uint32_t m_Renderbuffer = 0;
-	uint32_t m_DepthAttachment = 0;
-	std::vector<uint32_t> m_ColorAttachments{};
+	uint8_t m_NumColorAttachments = 0;
+
+	std::vector<uint32_t> m_TextureAttachments{};
+	std::vector<uint32_t> m_RenderbufferAttachments{};
 
 	void Destroy();
+
+	void AddTextureAttachment(const FramebufferAttachment& attachment);
+	void AddRenderbufferAttachment(const FramebufferAttachment& attachment);
 };

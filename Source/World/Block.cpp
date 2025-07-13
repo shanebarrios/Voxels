@@ -27,8 +27,20 @@ bool IsTransparent(BlockType blockType)
 	switch (blockType)
 	{
 	case BlockType::Air:
-	case BlockType::Leaves:
 	case BlockType::Water:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool IsTranslucent(BlockType blockType)
+{
+	switch (blockType)
+	{
+	case BlockType::Air:
+	case BlockType::Water:
+	case BlockType::Leaves:
 		return true;
 	default:
 		return false;

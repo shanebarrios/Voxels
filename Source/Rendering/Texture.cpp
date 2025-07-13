@@ -5,70 +5,105 @@
 #include <cassert>
 #include "Utils/Logger.h"
 
-static Texture2D::Format FormatFromChannels(int numChannels)
+static GLenum TextureInternalFormatToInternalGL(TextureInternalFormat format)
+{
+    switch (format)
+    {
+    case TextureInternalFormat::R8:
+        return GL_R8;
+    case TextureInternalFormat::RG8:
+        return GL_RG8;
+    case TextureInternalFormat::RGB8:
+        return GL_RGB8;
+    case TextureInternalFormat::RGBA8:
+        return GL_RGBA8;
+    case TextureInternalFormat::RGBA16F:
+        return GL_RGBA16F;
+    case TextureInternalFormat::RGBA32F:
+        return GL_RGBA32F;
+    case TextureInternalFormat::Depth32F:
+        return GL_DEPTH_COMPONENT32F;
+    case TextureInternalFormat::Depth24Stencil8:
+        return GL_DEPTH24_STENCIL8;
+    case TextureInternalFormat::Depth24:
+        return GL_DEPTH_COMPONENT24;
+    default:
+        assert(false && "Invalid format passed in"); return GL_ZERO;
+    }
+}
+
+static TextureInternalFormat TextureInternalFormatFromChannels(int numChannels)
 {
     switch (numChannels)
     {
-    case 1: return Texture2D::Format::R;
-    case 2: return Texture2D::Format::RG;
-    case 3: return Texture2D::Format::RGB;
-    case 4: return Texture2D::Format::RGBA;
-    default: assert(false && "Invalid number of texture channels"); return Texture2D::Format::R;
+    case 1: return TextureInternalFormat::R8;
+    case 2: return TextureInternalFormat::RG8;
+    case 3: return TextureInternalFormat::RGB8;
+    case 4: return TextureInternalFormat::RGBA8;
+    default: assert(false && "Invalid number of texture channels"); return TextureInternalFormat::None;
     }
 }
 
-static GLenum FormatToInternal(Texture2D::Format format)
+static GLenum TextureInternalFormatToGL(TextureInternalFormat format)
 {
     switch (format)
     {
-    case Texture2D::Format::R:
-        return GL_R8;
-    case Texture2D::Format::RG:
-        return GL_RG8;
-    case Texture2D::Format::RGB:
-        return GL_RGB8;
-    case Texture2D::Format::RGBA:
-        return GL_RGBA8;
-    case Texture2D::Format::Depth:
-        return GL_DEPTH_COMPONENT24;
-    case Texture2D::Format::Stencil:
-        return GL_STENCIL_INDEX8;
-    case Texture2D::Format::DepthStencil:
-        return GL_DEPTH24_STENCIL8;
+    case TextureInternalFormat::R8:
+        return GL_RED;
+    case TextureInternalFormat::RG8:
+        return GL_RG;
+    case TextureInternalFormat::RGB8:
+        return GL_RGB;
+    case TextureInternalFormat::RGBA8:
+    case TextureInternalFormat::RGBA16F:
+    case TextureInternalFormat::RGBA32F:
+        return GL_RGBA;
+    case TextureInternalFormat::Depth32F:
+    case TextureInternalFormat::Depth24:
+        return GL_DEPTH_COMPONENT;
+    case TextureInternalFormat::Depth24Stencil8:
+        return GL_DEPTH_STENCIL;
     default:
-        assert(false && "Invalid format passed in"); return GL_R8;
+        assert(false && "Invalid format passed in"); return GL_NONE;
     }
 }
 
-static GLenum FormatToType(Texture2D::Format format)
+static GLenum TextureInternalFormatToStorageType(TextureInternalFormat format)
 {
     switch (format)
     {
-    case Texture2D::Format::R:
-    case Texture2D::Format::RG:
-    case Texture2D::Format::RGB:
-    case Texture2D::Format::RGBA:
-    case Texture2D::Format::Stencil:
+    case TextureInternalFormat::R8:
+    case TextureInternalFormat::RG8:
+    case TextureInternalFormat::RGB8:
+    case TextureInternalFormat::RGBA8:
         return GL_UNSIGNED_BYTE;
-    case Texture2D::Format::Depth:
+    case TextureInternalFormat::RGBA16F:
+    case TextureInternalFormat::RGBA32F:
+    case TextureInternalFormat::Depth32F:
         return GL_FLOAT;
-    case Texture2D::Format::DepthStencil:
+    case TextureInternalFormat::Depth24:
+        return GL_UNSIGNED_INT;
+    case TextureInternalFormat::Depth24Stencil8:
         return GL_UNSIGNED_INT_24_8;
     default:
-        assert(false && "Invalid format passed in"); return GL_UNSIGNED_BYTE;
+        assert(false && "Invalid format passed in"); return GL_NONE;
     }
 }
 
-Texture2D Texture2D::FromPath(std::string_view path)
+static uint32_t CreateAndBindTexture(TextureWrap wrapMethod)
 {
     uint32_t id;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLenum>(wrapMethod));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLenum>(wrapMethod));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    return id;
+}
 
+Texture2D Texture2D::FromPath(std::string_view path, TextureWrap wrapMethod)
+{
     int width, height, numChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char* data = stbi_load(path.data(), &width, &height, &numChannels, 0);
@@ -76,20 +111,27 @@ Texture2D Texture2D::FromPath(std::string_view path)
     if (!data)
     {
         LOG_ERROR("Failed to load texture at {}", path);
-        return Texture2D{ 0, Format::R, 0, 0 };
+        return Texture2D{ 0, TextureInternalFormat::None, 0, 0 };
     }
 
-    const Format format = FormatFromChannels(numChannels);
-    const GLenum internalFormat = FormatToInternal(format);
-    const GLenum type = FormatToType(format);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, static_cast<GLenum>(format), type, data);
-    //glGenerateMipmap(GL_TEXTURE_2D);
+    const TextureInternalFormat format = TextureInternalFormatFromChannels(numChannels);
+    Texture2D ret = FromData(data, width, height, format, TextureWrap::ClampToEdge);
     stbi_image_free(data);
+    return ret;
+}
+
+Texture2D Texture2D::FromData(const void* data, int width, int height, TextureInternalFormat format, TextureWrap wrapMethod)
+{
+    const uint32_t id = CreateAndBindTexture(wrapMethod);
+    const GLenum GLFormat = TextureInternalFormatToGL(format);
+    const GLenum internalGLFormat = TextureInternalFormatToInternalGL(format);
+    const GLenum storageType = TextureInternalFormatToStorageType(format);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, internalGLFormat, width, height, 0, GLFormat, storageType, data);
     return Texture2D{ id, format, width, height };
 }
 
-Texture2D::Texture2D(uint32_t id, Format format, int width, int height) :
+Texture2D::Texture2D(uint32_t id, TextureInternalFormat format, int width, int height) :
     m_ID{ id },
     m_Format{ format },
     m_Width{ width },

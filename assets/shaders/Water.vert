@@ -38,7 +38,6 @@ void main()
 	float u = (a_Data >> 23u) & 0x1u;
 	float v = (a_Data >> 24u) & 0x1u;
 	uint face = (a_Data >> 25u) & 0x7u;
-	bool topWaterFlag = bool((a_Data >> 28u) & 0x1u);
 
 	v_Normal = k_FaceNormals[face];
 
@@ -51,10 +50,6 @@ void main()
 	v_FragPos = u_Position + chunkOffset;
 
 	vec4 worldPosition = vec4(u_Position + chunkOffset, 1.0);
-	if (topWaterFlag)
-	{
-		worldPosition.y -= 0.05;
-	}
 
 	gl_Position = u_Projection * u_View * worldPosition;
 }
