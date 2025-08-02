@@ -4,6 +4,7 @@
 #include <string_view>
 #include <chrono>
 #include <format>
+#include <source_location>
 #ifdef _WIN32
 	#define NOMINMAX
 	#include <Windows.h>

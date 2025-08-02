@@ -211,7 +211,7 @@ void World::UpdateChunkMeshes()
 			updated++;
 			chunk->RebuildMesh(*this);
 		}
-		if (updated > 64) break;
+		if (updated > 32) break;
 	}
 }
 

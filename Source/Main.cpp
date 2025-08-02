@@ -1,10 +1,8 @@
 #include <chrono>
 #include <array>
 #include <vector>
-#include "Utils/Logger.h" // Included before GLFW to avoid APIENTRY redefinition warning
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
+#include "Utils/Logger.h" 
 #include "Window.h"
 #include "Rendering/Camera.h"
 #include "Rendering/Renderer.h"

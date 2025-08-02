@@ -20,7 +20,7 @@ void ChunkVertex::SetTextureIndex(uint8_t i)
 	m_Encoding |= (i << 15u);
 }
 
-void ChunkVertex::SetFlagTopOfWater()
+void ChunkVertex::SetAmbientOcclusion(uint8_t amount)
 {
-	m_Encoding |= (1 << 28u);
+	m_Encoding |= (amount << 28u);
 }

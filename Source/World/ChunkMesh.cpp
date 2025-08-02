@@ -1,8 +1,16 @@
 #include "ChunkMesh.h"
 #include <vector>
+#include <utility>
 #include "Chunk.h"
 #include "ChunkUtils.h"
 #include "World.h"
+
+// Move this to separate header eventually
+#if defined (_MSC_VER) && !defined(__clang__)
+	#define unreachable() __assume(false)
+#else
+	#define unreachable() __builtin_unreachable()
+#endif
 
 static constexpr std::array<std::array<ChunkVertex, ChunkVertex::k_VerticesPerFace>, static_cast<size_t>(BlockFace::Count)> k_FaceVertices
 {{
@@ -82,8 +90,63 @@ static BlockType GetBlock(const Chunk& chunk, const World& world, BlockCoords of
 	}
 }
 
-std::array<ChunkVertex, 16 * 16 * 16 * 6 * 6> ChunkMesh::s_Buffer{};
-std::array<ChunkVertex, 16 * 16 * 16 * 6 * 6> ChunkMesh::s_TransparentBuffer{};
+// Assumes that the chunk vertex has not already been offset
+static uint8_t GetOcclusionFactor(const Chunk& chunk, const World& world, ChunkVertex vertex, LocalBlockCoords offset)
+{
+	const LocalBlockCoords blockLocalCoords = vertex.GetLocalCoords();
+	const int dx = static_cast<int>(blockLocalCoords.X * 2) - 1;
+	const int dy = static_cast<int>(blockLocalCoords.Y * 2) - 1;
+	const int dz = static_cast<int>(blockLocalCoords.Z * 2) - 1;
+
+	// Use BlockCoords instead of LocalBlockCoords because it might be outside of chunk
+	BlockCoords edge1Coords;
+	BlockCoords edge2Coords;
+	BlockCoords cornerCoords;
+	switch (vertex.GetFace())
+	{
+	case BlockFace::PosZ:
+		edge1Coords = { offset.X + dx, offset.Y, offset.Z + 1 };
+		edge2Coords = { offset.X, offset.Y + dy, offset.Z + 1 };
+		cornerCoords = { offset.X + dx, offset.Y + dy, offset.Z + 1 };
+		break;
+	case BlockFace::NegZ:
+		edge1Coords = { offset.X + dx, offset.Y, offset.Z - 1 };
+		edge2Coords = { offset.X, offset.Y + dy, offset.Z - 1 };
+		cornerCoords = { offset.X + dx, offset.Y + dy, offset.Z - 1 };
+		break;
+	case BlockFace::NegX:
+		edge1Coords = { offset.X - 1, offset.Y + dy, offset.Z};
+		edge2Coords = { offset.X - 1, offset.Y, offset.Z + dz };
+		cornerCoords = { offset.X - 1, offset.Y + dy, offset.Z + dz };
+		break;
+	case BlockFace::PosX:
+		edge1Coords = { offset.X + 1, offset.Y + dy, offset.Z };
+		edge2Coords = { offset.X + 1, offset.Y, offset.Z + dz };
+		cornerCoords = { offset.X + 1, offset.Y + dy, offset.Z + dz };
+		break;
+	case BlockFace::PosY:
+		edge1Coords = { offset.X + dx, offset.Y + 1, offset.Z };
+		edge2Coords = { offset.X, offset.Y + 1, offset.Z + dz };
+		cornerCoords = { offset.X + dx, offset.Y + 1, offset.Z + dz };
+		break;
+	case BlockFace::NegY:
+		edge1Coords = { offset.X + dx, offset.Y - 1, offset.Z };
+		edge2Coords = { offset.X, offset.Y - 1, offset.Z + dz };
+		cornerCoords = { offset.X + dx, offset.Y - 1, offset.Z + dz };
+		break;
+	default:
+		unreachable();
+	}
+	const bool edge1 = !IsTranslucent(GetBlock(chunk, world, edge1Coords));
+	const bool edge2 = !IsTranslucent(GetBlock(chunk, world, edge2Coords));
+	const bool corner = !IsTranslucent(GetBlock(chunk, world, cornerCoords));
+	if (edge1 && edge2) return 0;
+	return 3 - (edge1 + edge2 + corner);
+}
+
+// Per frame heap allocations are slow and this is too big for the stack
+static ChunkVertex s_Buffer[16 * 16 * 16 * 6 * 6];
+static ChunkVertex s_TransparentBuffer[16 * 16 * 16 * 6 * 6];
 
 ChunkMesh::ChunkMesh()
 {
@@ -96,13 +159,13 @@ void ChunkMesh::Rebuild(const Chunk& chunk, const World& world)
 {
 	m_BufferIndex = 0;
 	m_TransparentBufferIndex = 0;
-	const std::array<BlockType, Chunk::k_Size>& blocks = chunk.GetBlocks();
-	for (size_t i = 0; i < blocks.size(); i++)
+	const BlockType* blocks = chunk.GetBlocks();
+	for (size_t i = 0; i < Chunk::k_Size; i++)
 	{
 		HandleBlock(chunk, world, i);
 	}
-	m_OpaqueVBO.SetData(s_Buffer.data(), m_BufferIndex);
-	m_TransparentVBO.SetData(s_TransparentBuffer.data(), m_TransparentBufferIndex);
+	m_OpaqueVBO.SetData(s_Buffer, m_BufferIndex);
+	m_TransparentVBO.SetData(s_TransparentBuffer, m_TransparentBufferIndex);
 }
 
 void ChunkMesh::HandleBlock(const Chunk& chunk, const World& world, size_t i)
@@ -135,14 +198,10 @@ void ChunkMesh::AddFace(const Chunk& chunk, const World& world, BlockFace face, 
 	for (size_t i = 0; i < ChunkVertex::k_VerticesPerFace; i++)
 	{
 		ChunkVertex vertex = k_FaceVertices[static_cast<size_t>(face)][i];
+		vertex.SetAmbientOcclusion(GetOcclusionFactor(chunk, world, vertex, offset));
 		vertex.Offset(offset.X, offset.Y, offset.Z);
 		vertex.SetTextureIndex(GetTextureIndex(face, blockType));
-		if (blockType == BlockType::Water && 
-			face == BlockFace::PosY && 
-			GetBlock(chunk, world, offset + BlockCoords{0, 1, 0}) != BlockType::Water)
-		{
-			//vertex.SetFlagTopOfWater();
-		}
+
 		if (blockType == BlockType::Water)
 		{
 			s_TransparentBuffer[m_TransparentBufferIndex++] = vertex;

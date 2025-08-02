@@ -24,10 +24,6 @@ public:
 	void BindTransparent() const;
 	
 private:
-	// Per frame heap allocations are slow and this is too big for the stack
-	static std::array<ChunkVertex, 16 * 16 * 16 * 6 * 6> s_Buffer;
-	static std::array<ChunkVertex, 16 * 16 * 16 * 6 * 6> s_TransparentBuffer;
-
 	/*std::vector<ChunkVertex> m_TransparentBuffer{};*/
 	size_t m_BufferIndex = 0;
 	size_t m_TransparentBufferIndex = 0;

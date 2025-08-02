@@ -43,4 +43,8 @@ target_compile_definitions(Voxels PRIVATE ASSETS_PATH=\"${CMAKE_SOURCE_DIR}/asse
 
 target_include_directories(Voxels PRIVATE "${CMAKE_SOURCE_DIR}/Source")
 
+if (MSVC)
+	set_target_properties(Voxels PROPERTIES LINK_FLAGS "/PROFILE")
+endif()
+
 

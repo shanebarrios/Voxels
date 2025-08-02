@@ -31,6 +31,9 @@ void CrosshairRenderer::Render() const
 	m_Texture.Bind();
 	m_VAO.Bind();
 	m_Shader.SetUniform(Shader::UNIFORM_TRANSFORM, m_Transform);
-	
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 }

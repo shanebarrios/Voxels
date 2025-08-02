@@ -14,6 +14,7 @@ uniform ivec3 u_Position = ivec3(0);
 out vec2 v_TexCoords;
 out vec3 v_Normal;
 out vec3 v_FragPos;
+out float v_AmbientFactor;
 
 const vec3 k_FaceNormals[6] = vec3[]
 (
@@ -45,6 +46,8 @@ void main()
 		((textureIndex & 0xFu) + u) / 16.0,
 		(15u - (textureIndex >> 4u) + v) / 16.0
 	);
+
+	v_AmbientFactor = float((a_Data >> 28u) & 0x3u) / 3.0;
 
 	vec4 worldPosition = vec4(u_Position + chunkOffset, 1.0);
 	vec4 viewPosition = u_View * worldPosition;

@@ -30,17 +30,18 @@ public:
 	void SetBlock(BlockType blockType, size_t i);
 	void SetBlock(BlockType blockType, uint8_t x, uint8_t y, uint8_t z);
 
-	const std::array<BlockType, k_Size>& GetBlocks() const { return m_Blocks; }
+	BlockType* GetBlocks() { return m_Blocks; }
+	const BlockType* GetBlocks() const { return m_Blocks; }
 
 	void RebuildMesh(const World& world);
 	void TriggerRebuild() { m_NeedsRebuild = true; }
-	bool NeedsRebuild() const { return m_NeedsRebuild; }
+	bool NeedsRebuild() const { return m_NeedsRebuild && m_PotentiallyHasBlocks; }
 
 private:
-	std::array<BlockType, k_Size> m_Blocks{};
+	BlockType m_Blocks[k_Size]{};
 	ChunkCoords m_Coords{};
 	ChunkMesh m_Mesh{};
 
-	bool m_NeedsRebuild = true;
+	bool m_NeedsRebuild = false;
 	bool m_PotentiallyHasBlocks = false;
 };

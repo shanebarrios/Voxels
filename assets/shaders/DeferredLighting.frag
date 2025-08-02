@@ -14,17 +14,15 @@ out vec4 FragColor;
 layout (binding = 0) uniform sampler2D u_PositionSampler;
 layout (binding = 1) uniform sampler2D u_NormalSampler;
 layout (binding = 2) uniform sampler2D u_AlbedoSampler;
-layout (binding = 3) uniform sampler2D u_SSAOSampler;
-layout (binding = 4) uniform sampler2DArray u_ShadowMap;
+//layout (binding = 3) uniform sampler2D u_SSAOSampler;
+layout (binding = 3) uniform sampler2DArray u_ShadowMap;
 
 uniform vec4 u_SubfrustaPlanes;
 uniform vec3 u_LightDir;
 
 const vec3 k_LightColor = vec3(1.0, 1.0, 0.8);
-const float k_AmbientFactor = 0.3;
-const float k_DiffuseFactor = 0.7;
-
-
+const float k_AmbientFactor = 0.4;
+const float k_DiffuseFactor = 0.6;
 
 float ShadowCalculation(vec3 fragPos)
 {
@@ -70,8 +68,10 @@ void main()
 {
 	vec3 fragPos = texture(u_PositionSampler, v_TexCoords).rgb;
 	vec3 normal = texture(u_NormalSampler, v_TexCoords).rgb;
-	vec3 albedo = texture(u_AlbedoSampler, v_TexCoords).rgb;
-	float ambientOcclusion = texture(u_SSAOSampler, v_TexCoords).r;
+	vec4 albedoSample = texture(u_AlbedoSampler, v_TexCoords);
+	vec3 albedo = albedoSample.rgb;
+	float occlusion = albedoSample.a;
+	//float ambientOcclusion = texture(u_SSAOSampler, v_TexCoords).r;
 
 	// This is definitely not how you're supposed to do fill color
 	if (albedo == vec3(0.0))
@@ -80,7 +80,7 @@ void main()
 		return;
 	};
 
-	vec3 ambient = k_AmbientFactor * ambientOcclusion * albedo;
+	vec3 ambient = k_AmbientFactor * albedo * mix(0.5, 1.0, occlusion);
 
 	float diff = max(dot(normal, -u_LightDir), 0.0) * k_DiffuseFactor;
 	vec3 diffuse = diff * albedo;
