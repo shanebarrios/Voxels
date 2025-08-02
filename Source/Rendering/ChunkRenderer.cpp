@@ -5,8 +5,9 @@
 #include "Utils/Coordinates.h"
 #include "Camera.h"
 #include "Buffer.h"
+#include "Utils/DebugState.h"
 
-int drawCalls = 0;
+extern DebugState g_DebugState;
 
 ChunkRenderer::ChunkRenderer(const UniformBuffer& cameraUBO) :
 	m_TextureAtlas{Texture2D::FromPath(ASSETS_PATH "Textures/VoxelTextures.png")},
@@ -32,6 +33,7 @@ void ChunkRenderer::RenderGBuffer(const std::vector<const Chunk*>& chunkList) co
 		const ChunkCoords coords = chunk->GetCoords();
 		m_GBufferShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * 16, coords.Y * 16, coords.Z * 16);
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.NumOpaqueVertices()));
+		g_DebugState.DrawCalls++;
 	}
 }
 
@@ -47,6 +49,7 @@ void ChunkRenderer::RenderDepth(const std::vector<const Chunk*>& chunkList) cons
 		const ChunkCoords coords = chunk->GetCoords();
 		m_DepthShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * 16, coords.Y * 16, coords.Z * 16);
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.NumOpaqueVertices()));
+		g_DebugState.DrawCalls++;
 	}
 }
 
@@ -62,5 +65,6 @@ void ChunkRenderer::RenderWater(const std::vector<const Chunk*>& chunkList) cons
 		const ChunkCoords coords = chunk->GetCoords();
 		m_GBufferShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * 16, coords.Y * 16, coords.Z * 16);
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.NumTransparentVertices()));
+		g_DebugState.DrawCalls++;
 	}
 }

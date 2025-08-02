@@ -1,9 +1,9 @@
 #include "Window.h"
 
+#include "Utils/Logger.h"
 #include <array>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "Utils/Logger.h"
 
 static constexpr std::array<Key, GLFW_KEY_LAST + 1> GenerateKeyMappings()
 {
@@ -40,17 +40,19 @@ double Input::GetCursorPosY() const
 
 int Window::s_NumWindows = 0;
 
-Window::Window(int width, int height, std::string_view name) : m_Width{ width }, m_Height{ height }
+Window::Window(int width, int height, std::string_view name, bool vsync, bool fullscreen) 
+    : m_Width{ width }, m_Height{ height }
 {
     if (s_NumWindows++ == 0)
     {
         Window::Init();
     }
-    m_Window = glfwCreateWindow(width, height, name.data(), glfwGetPrimaryMonitor(), nullptr);
-    //m_Window = glfwCreateWindow(width, height, name.data(), nullptr, nullptr);
+    GLFWmonitor* monitor = fullscreen ? glfwGetPrimaryMonitor() : nullptr;
+    m_Window = glfwCreateWindow(width, height, name.data(), monitor, nullptr);
     if (m_Window == nullptr)
     {
         LOG_ERROR("Failed to create window");
+        return;
     }
     Activate();
     glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -59,7 +61,8 @@ Window::Window(int width, int height, std::string_view name) : m_Width{ width },
     glfwSetKeyCallback(m_Window, KeyCallback);
     glfwSetCursorPosCallback(m_Window, CursorCallback);
     glfwGetCursorPos(m_Window, &m_Input.m_CursorPosX, &m_Input.m_CursorPosY);
-    glfwSwapInterval(0);
+
+    if (!vsync) glfwSwapInterval(0);
 }
 
 Window::~Window()

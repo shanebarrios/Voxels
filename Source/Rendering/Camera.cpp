@@ -35,21 +35,21 @@ Camera::Camera(const PlayerView& playerView) :
 void Camera::InitMatrices()
 {
     constexpr float nearPlane = 0.1f;
-    constexpr float farPlane = 27.8f * (k_ChunkViewDistance + 1);
+    constexpr float farPlane = 27.8f * (Config::ChunkRenderDistance + 1);
 
     constexpr float lambda = 0.8f;
 
     m_SubfrustaPlaneDepths[0] = nearPlane;
-    m_SubfrustaPlaneDepths[k_NumSubdivisions] = farPlane;
-    for (size_t i = 1; i < k_NumSubdivisions; i++)
+    m_SubfrustaPlaneDepths[NUM_CASCADES] = farPlane;
+    for (size_t i = 1; i < NUM_CASCADES; i++)
     {
         // Thanks Nvidia (I have no idea what black magic this is)
-        const float planeDepth = lambda * nearPlane * std::powf(farPlane / nearPlane, static_cast<float>(i) / k_NumSubdivisions)
-            + (1 - lambda) * (nearPlane + (static_cast<float>(i) / k_NumSubdivisions) * (farPlane - nearPlane));
+        const float planeDepth = lambda * nearPlane * std::powf(farPlane / nearPlane, static_cast<float>(i) / NUM_CASCADES)
+            + (1 - lambda) * (nearPlane + (static_cast<float>(i) / NUM_CASCADES) * (farPlane - nearPlane));
         m_SubfrustaPlaneDepths[i] = planeDepth;
         LOG_INFO("{}", planeDepth);
     }
-    for (size_t i = 0; i < k_NumSubdivisions; i++)
+    for (size_t i = 0; i < NUM_CASCADES; i++)
     {
         m_SubfrustaProjectionMatrices[i] = glm::perspective(m_Fov, m_AspectRatio, m_SubfrustaPlaneDepths[i], m_SubfrustaPlaneDepths[i + 1]);
     }

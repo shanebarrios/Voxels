@@ -49,6 +49,10 @@ public:
 
 	uint32_t GetId() const { return m_ID; }
 
+	int GetWidth() const { return m_Width; }
+
+	int GetHeight() const { return m_Height; }
+
 	void Bind() const;
 
 	void Unbind(int defaultWidth, int defaultHeight) const;

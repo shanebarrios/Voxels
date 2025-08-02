@@ -10,6 +10,7 @@ using Entity = uint32_t;
 class IComponentArray {
 public:
 	virtual ~IComponentArray() = default;
+
 	virtual void Destroy(Entity entity) = 0;
 };
 
@@ -22,13 +23,21 @@ public:
 	void Destroy(Entity entity) override { Remove(entity); }
 
 	void Insert(Entity entity, Component&& component);
+
 	Component& Get(Entity entity);
+
 	const Component& Get(Entity entity) const;
+
 	Component* OptionalGet(Entity entity);
+
 	const Component* OptionalGet(Entity entity) const;
+
 	void Remove(Entity entity);
+
 	bool Contains(Entity entity) const;
+
 	size_t Count() const { return m_Count; }
+
 	void Clear() { m_Count = 0; };
 
 	template <bool IsConst>
@@ -69,8 +78,8 @@ public:
 	ConstIterator begin() const { return { m_Components.data(), m_Dense.data() }; }
 	ConstIterator end() const { return { m_Components.data() + m_Count, m_Dense.data() + m_Count }; }
 private:
-	std::array<Component, N> m_Components;
-	std::array<Entity, N> m_Dense;
+	std::array<Component, N> m_Components{};
+	std::array<Entity, N> m_Dense{};
 	std::array<size_t, N> m_Sparse;
 
 	size_t m_Count = 0;

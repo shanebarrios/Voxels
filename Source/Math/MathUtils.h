@@ -11,6 +11,11 @@ namespace MathUtils
 		return begin + (end - begin) * alpha;
 	}
 
+	inline constexpr float Fade(float t)
+	{
+		return t * t * t * (t * (t * 6 - 15) + 10);
+	}
+
 	inline constexpr float DegsToRadians(float n)
 	{
 		return n * std::numbers::pi_v<float> / 180.0f;

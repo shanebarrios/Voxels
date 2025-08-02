@@ -7,12 +7,6 @@
 #include <limits>
 #include <algorithm>
 
-float octaveMin = std::numeric_limits<float>::max();
-float octaveMax = std::numeric_limits<float>::lowest();
-
-float noiseMin = std::numeric_limits<float>::max();
-float noiseMax = std::numeric_limits<float>::lowest();
-
 struct Vec2
 {
     float X;
@@ -29,8 +23,9 @@ struct Vec2
     Vec2& operator*=(float k) { X *= k; Y *= k; return *this; }
 };
 
-static constexpr std::array<uint8_t, 256> k_Permutation = { 151,160,137,91,90,15,                 // Hash lookup table as defined by Ken Perlin.  This is a randomly
-    131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,    // arranged array of all numbers from 0-255 inclusive.
+// Ken Perlin's permutation table
+static constexpr std::array<uint8_t, 256> k_Permutation = { 151,160,137,91,90,15,                 
+    131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,    
     190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
     88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
     77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
@@ -54,13 +49,8 @@ static constexpr std::array<uint8_t, 512> RepeatPermutation()
     return ret;
 }
 
-static constexpr float Fade(float t)
-{
-    return t * t * t * (t * (t * 6 - 15) + 10);
-}
-
-#define SQRT2 1.41421356
-#define INV_SQRT2 0.70710678f
+constexpr float SQRT2 = 1.41421356f;
+constexpr float INV_SQRT2 = 0.70710678f;
 
 static constexpr std::array<Vec2, 8> k_Gradients =
 {
@@ -119,18 +109,19 @@ namespace Noise
         const Vec2 gradBottomLeft = GetRandomGradient(permutation[permutation[xi] + yi]);
         const Vec2 gradBottomRight = GetRandomGradient(permutation[permutation[xi + 1] + yi]);
 
-        const float u = Fade(xf);
-        const float v = Fade(yf);
+        const float u = MathUtils::Fade(xf);
+        const float v = MathUtils::Fade(yf);
 
         const float influence1 = Vec2::Dot(distTopLeft, gradTopLeft);
         const float influence2 = Vec2::Dot(distTopRight, gradTopRight);
         const float influence3 = Vec2::Dot(distBottomLeft, gradBottomLeft);
         const float influence4 = Vec2::Dot(distBottomRight, gradBottomRight);
 
-        float ret = MathUtils::Lerp(MathUtils::Lerp(influence3, influence4, u), MathUtils::Lerp(influence1, influence2, u), v) * SQRT2;
-        if (ret < noiseMin) noiseMin = ret;
-        if (ret > noiseMax) noiseMax = ret;
-        return ret;
+        return MathUtils::Lerp(
+            MathUtils::Lerp(influence3, influence4, u), 
+            MathUtils::Lerp(influence1, influence2, u), 
+            v
+        ) * SQRT2;
     }
 
     OctavePerlinNoise::OctavePerlinNoise(OctaveConfig config, int seed) :
@@ -158,8 +149,6 @@ namespace Noise
     {
         const float nonNormalized = OctaveNoiseNonNormalized(m_Config, x, y);
         const float normalized = (nonNormalized - m_MinEstimate) / (m_MaxEstimate - m_MinEstimate);
-        if (normalized < octaveMin) octaveMin = normalized;
-        if (normalized > octaveMax) octaveMax = normalized;
         return std::clamp(normalized, 0.0f, 1.0f);
     }
 }

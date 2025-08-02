@@ -9,10 +9,10 @@
 #include <random>
 
 using SubfrustumCorners = std::array<glm::vec3, 8>;
-using SubfrustaCorners = std::array<SubfrustumCorners, Camera::k_NumSubdivisions>;
+using SubfrustaCorners = std::array<SubfrustumCorners, Camera::NUM_CASCADES>;
 
 template <typename T>
-using SubfrustumArray = std::array<T, Camera::k_NumSubdivisions>;
+using SubfrustumArray = std::array<T, Camera::NUM_CASCADES>;
 
 static constexpr glm::mat4 k_Identity{ 1.0f };
 
@@ -32,7 +32,7 @@ static glm::vec3 GetFrustumMidpoint(const SubfrustumCorners& corners)
 	return sum / 8.0f;
 }
 
-static AABB GetLightAABBViewSpace(const SubfrustumCorners& corners, const glm::mat4& view)
+static AABB GetLightAABBViewSpace(const SubfrustumCorners& corners, const glm::mat4& view, int shadowDimension)
 {
 	AABB aabb
 	{ 
@@ -48,6 +48,16 @@ static AABB GetLightAABBViewSpace(const SubfrustumCorners& corners, const glm::m
 
 	aabb.Min.z < 0.0f ? aabb.Min.z *= 10.0f : aabb.Min.z /= 10.0f;
 	aabb.Max.z < 0.0f ? aabb.Max.z /= 10.0f : aabb.Max.z *= 10.0f;
+
+	const glm::vec3 worldUnitsPerTexel = (aabb.Max - aabb.Min) / static_cast<float>(shadowDimension);
+
+	aabb.Min /= worldUnitsPerTexel;
+	aabb.Min = glm::floor(aabb.Min);
+	aabb.Min *= worldUnitsPerTexel;
+
+	aabb.Max /= worldUnitsPerTexel;
+	aabb.Max = glm::floor(aabb.Max);
+	aabb.Max *= worldUnitsPerTexel;
 
 	return aabb;
 }
@@ -132,7 +142,7 @@ static bool ChunkInFrustrum(ChunkCoords coords, const std::array<Plane, 6>& frus
 	return true;
 }
 
-static bool ChunkInLightView(ChunkCoords coords, const std::array<AABB, Camera::k_NumSubdivisions>& aabbs)
+static bool ChunkInLightView(ChunkCoords coords, const std::array<AABB, Camera::NUM_CASCADES>& aabbs)
 {
 	const AABB chunkAABB = GetChunkAABB(coords);
 	for (const AABB& aabb : aabbs)
@@ -187,7 +197,7 @@ void Renderer::InitFramebuffers()
 	{
 		.Format = FramebufferAttachmentFormat::Depth32F,
 		.Type = FramebufferAttachmentType::Texture2DArray,
-		.LayerCount = Camera::k_NumSubdivisions
+		.LayerCount = Camera::NUM_CASCADES
 	};
 	m_ShadowFramebuffer.SetAttachments({ depthMapAttachment });
 
@@ -292,14 +302,14 @@ void Renderer::ConfigureMatrices(const Camera& camera) const
 	SubfrustumArray<AABB> subfrustaAABBs;
 	SubfrustumArray<glm::mat4> lightViewMatrices;
 
-	for (int i = 0; i < Camera::k_NumSubdivisions; i++)
+	for (int i = 0; i < Camera::NUM_CASCADES; i++)
 	{
 		const glm::mat4& proj = camera.GetSubfrustaProjectionMatrix(i);
 		SubfrustumCorners corners;
 		camera.GetSubfrustumCornersWorldSpace(corners, i);
 		const glm::vec3 frustumMidpoint = GetFrustumMidpoint(corners);
 		lightViewMatrices[i] = glm::lookAt(frustumMidpoint - lightDir, frustumMidpoint, glm::vec3{ 0.0f, 1.0f, 0.0f });
-		const AABB lightAABB = GetLightAABBViewSpace(corners, lightViewMatrices[i]);
+		const AABB lightAABB = GetLightAABBViewSpace(corners, lightViewMatrices[i], m_ShadowFramebuffer.GetWidth());
 		subfrustaAABBs[i] = lightAABB;
 		const glm::mat4 lightProj = glm::ortho(
 			lightAABB.Min.x, lightAABB.Max.x,

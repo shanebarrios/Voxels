@@ -29,7 +29,6 @@ public:
 private:
 	double m_CursorPosX;
 	double m_CursorPosY;
-	// could be smaller but its not even a kilobyte who cares
 	uint64_t m_Keys;
 
 	friend class Window;
@@ -40,7 +39,7 @@ struct GLFWwindow;
 class Window
 {
 public:
-	Window(int width, int height, std::string_view name);
+	Window(int width, int height, std::string_view name, bool vsync, bool fullscreen);
 	~Window();
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
