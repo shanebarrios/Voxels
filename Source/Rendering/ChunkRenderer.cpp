@@ -11,7 +11,7 @@ extern DebugState g_DebugState;
 
 ChunkRenderer::ChunkRenderer(const UniformBuffer& cameraUBO) :
 	m_TextureAtlas{Texture2D::FromPath(ASSETS_PATH "Textures/VoxelTextures.png")},
-	m_DepthShader{ASSETS_PATH "Shaders/ChunkDepth.vert", ASSETS_PATH "Shaders/ChunkDepth.frag", ASSETS_PATH "Shaders/ChunkDepth.geom"},
+	m_DepthShader{ASSETS_PATH "Shaders/ChunkDepth.vert", ASSETS_PATH "Shaders/ChunkDepth.frag"},
 	m_GBufferShader{ASSETS_PATH "Shaders/ChunkGBuffer.vert", ASSETS_PATH "Shaders/ChunkGBuffer.frag"},
 	m_WaterShader{ASSETS_PATH "Shaders/Water.vert", ASSETS_PATH "Shaders/Water.frag"}
 {
@@ -37,10 +37,12 @@ void ChunkRenderer::RenderGBuffer(const std::vector<const Chunk*>& chunkList) co
 	}
 }
 
-void ChunkRenderer::RenderDepth(const std::vector<const Chunk*>& chunkList) const
+void ChunkRenderer::RenderDepth(const std::vector<const Chunk*>& chunkList, size_t cascade) const
 {
 	m_DepthShader.Bind();
 	m_TextureAtlas.Bind();
+
+	m_DepthShader.SetUniform(Shader::UNIFORM_CASCADE_INDEX, static_cast<uint32_t>(cascade));
 	
 	for (const Chunk* chunk : chunkList)
 	{

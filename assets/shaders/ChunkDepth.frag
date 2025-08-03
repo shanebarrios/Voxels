@@ -2,10 +2,10 @@
 
 uniform sampler2D u_TextureAtlas;
 
-in vec2 g_TexCoords;
+in vec2 v_TexCoords;
 
 void main()
 {
-	float a = texture(u_TextureAtlas, g_TexCoords).a;
+	float a = texture(u_TextureAtlas, v_TexCoords).a;
 	if (a < 0.05) discard;
 }

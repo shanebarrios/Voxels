@@ -160,4 +160,5 @@ void Shader::CacheUniformLocations()
     m_UniformLocations[UNIFORM_SAMPLES] = GetUniformLoc("u_Samples");
     m_UniformLocations[UNIFORM_TRANSFORM] = GetUniformLoc("u_Transform");
     m_UniformLocations[UNIFORM_LIGHT_DIR] = GetUniformLoc("u_LightDir");
+	m_UniformLocations[UNIFORM_CASCADE_INDEX] = GetUniformLoc("u_CascadeIndex");
 }

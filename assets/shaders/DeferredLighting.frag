@@ -22,7 +22,7 @@ uniform vec3 u_LightDir;
 
 const vec3 k_LightColor = vec3(1.0, 1.0, 0.8);
 const float k_AmbientFactor = 0.4;
-const float k_DiffuseFactor = 0.6;
+const float k_DiffuseFactor = 1.0;
 
 float ShadowCalculation(vec3 fragPos)
 {
@@ -71,7 +71,6 @@ void main()
 	vec4 albedoSample = texture(u_AlbedoSampler, v_TexCoords);
 	vec3 albedo = albedoSample.rgb;
 	float occlusion = albedoSample.a;
-	//float ambientOcclusion = texture(u_SSAOSampler, v_TexCoords).r;
 
 	// This is definitely not how you're supposed to do fill color
 	if (albedo == vec3(0.0))

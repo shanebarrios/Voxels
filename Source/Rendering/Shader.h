@@ -25,6 +25,7 @@ public:
         UNIFORM_SAMPLES,
         UNIFORM_TRANSFORM,
         UNIFORM_LIGHT_DIR,
+        UNIFORM_CASCADE_INDEX,
         UNIFORM_COUNT
     };
 
@@ -45,6 +46,11 @@ public:
     void SetUniform(ShaderUniform uniform, bool val) const
     {
         glUniform1i(m_UniformLocations[uniform], val);
+    }
+
+    void SetUniform(ShaderUniform uniform, uint32_t val) const
+    {
+        glUniform1ui(m_UniformLocations[uniform], val);
     }
 
     void SetUniform(ShaderUniform uniform, int val) const

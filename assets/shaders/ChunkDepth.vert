@@ -2,6 +2,15 @@
 
 layout (location = 0) in uint a_Data;
 
+layout (std140) uniform Matrices
+{
+	mat4 u_Projection;
+	mat4 u_View;
+	mat4 u_LightSpace[4];
+	mat4 u_NormalTransform;
+};
+
+uniform uint u_CascadeIndex;
 uniform ivec3 u_Position = ivec3(0);
 
 out vec2 v_TexCoords;
@@ -26,5 +35,5 @@ void main()
 
 	vec4 worldPosition = vec4(u_Position + chunkOffset, 1.0);
 
-	gl_Position = worldPosition;
+	gl_Position = u_LightSpace[u_CascadeIndex] * worldPosition;
 }
