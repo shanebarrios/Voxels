@@ -1,45 +1,61 @@
 #include "PlayerController.h"
 
-#include "../ECS/ECS.h"
-#include "../ECS/Components.h"
-#include "../Math/MathUtils.h"
+#include "ECS/ECS.h"
+#include "ECS/Components.h"
+#include "ECS/EntityFactory.h"
+#include "Math/MathUtils.h"
 #include "World.h"
-#include "../Window.h"
+#include "Rendering/Camera.h"
 #include "ChunkUtils.h"
-#include "../Physics/Raycast.h"
-#include "../Physics/PhysicsUtils.h"
+#include "Physics/Raycast.h"
+#include "Physics/PhysicsUtils.h"
+#include "Input.h"
 
-PlayerController::PlayerController(Entity player, ECS& ecs, World& world, ControlMode controlMode) :
+PlayerController::PlayerController(Entity player, ECS& ecs, World& world) :
+	m_ECS{ ecs },
+	m_Player { player },
 	m_TransformComponent{ ecs.GetComponent<TransformComponent>(player) },
 	m_LookComponent{ ecs.GetComponent<LookComponent>(player) },
 	m_InputComponent{ ecs.GetComponent<InputComponent>(player)},
 	m_PhysicsComponent{ ecs.GetOptionalComponent<PhysicsComponent>(player) },
-	m_World{ world },
-	m_ControlMode {controlMode}
+	m_World{ world }
 {
 
 }
 
-void PlayerController::Update(const GameInput& input)
+void PlayerController::Update(const Camera& camera)
 {
-	UpdateInput(input);
-	UpdateLook(input);
-	HandleBlockInteractions(input);
-	if (m_ControlMode == ControlMode::Debug)
+	UpdateInput(camera);
+	UpdateLook(camera);
+	HandleBlockInteractions(camera);
+	if (!m_PhysicsComponent)
 	{
 		HandleDebugMovement();
 	}
 }
 
-void PlayerController::UpdateLook(const GameInput& input)
+void PlayerController::SetPhysicsEnabled(bool yes)
 {
-	m_TransformComponent.Yaw = input.LookYaw;
-	m_LookComponent.Pitch = input.LookPitch;
-	m_LookComponent.Yaw = input.LookYaw;
-
-	if (m_ControlMode == ControlMode::Default)
+	if (yes && !m_PhysicsComponent)
 	{
-		if (input.Input.IsPressed(Key::Ctrl))
+		m_PhysicsComponent = &m_ECS.AddComponent<PhysicsComponent>(m_Player, EntityFactory::CreatePlayerPhysicsComponent());
+	}
+	else if (!yes && m_PhysicsComponent)
+	{
+		m_ECS.RemoveComponent<PhysicsComponent>(m_Player);
+		m_PhysicsComponent = nullptr;
+	}
+}
+
+void PlayerController::UpdateLook(const Camera& camera)
+{
+	m_TransformComponent.Yaw = camera.GetYaw();
+	m_LookComponent.Pitch = camera.GetPitch();
+	m_LookComponent.Yaw = camera.GetYaw();
+
+	if (m_PhysicsComponent)
+	{
+		if (Input::IsPressed(KeyCode::Ctrl))
 		{
 			m_LookComponent.Offset.Y = 1.3f;
 			m_PhysicsComponent->Collider.Max.Y = 1.5f;
@@ -52,9 +68,10 @@ void PlayerController::UpdateLook(const GameInput& input)
 	}
 }
 
-void PlayerController::HandleBlockInteractions(const GameInput& input)
+void PlayerController::HandleBlockInteractions(const Camera& camera)
 {
-	if (!input.Input.IsPressed(Key::MouseLeft) && !input.Input.IsPressed(Key::MouseRight))
+	if (!Input::IsPressed(KeyCode::MouseLeft) && 
+		!Input::IsPressed(KeyCode::MouseRight))
 	{
 		return;
 	}
@@ -71,7 +88,7 @@ void PlayerController::HandleBlockInteractions(const GameInput& input)
 	const std::optional<Raycast::RaycastHit> result = ray.Cast(m_World);
 	if (result)
 	{
-		if (input.Input.IsPressed(Key::MouseRight))
+		if (Input::IsPressed(KeyCode::MouseRight))
 		{
 			const BlockCoords normal = ChunkUtils::k_FaceNormals[static_cast<uint8_t>(result->Face)];
 			const BlockCoords coords = result->Coords + normal;
@@ -79,7 +96,7 @@ void PlayerController::HandleBlockInteractions(const GameInput& input)
 			if (!m_PhysicsComponent || 
 				!PhysicsUtils::ColliderIntersectsBlock(coords, m_PhysicsComponent->Collider, m_TransformComponent.Position))
 			{
-				m_World.PlaceBlock(BlockType::Stone, coords);
+				m_World.PlaceBlock(m_ActiveBlock, coords);
 			}
 		}
 		else
@@ -89,33 +106,33 @@ void PlayerController::HandleBlockInteractions(const GameInput& input)
 	}
 }
 
-void PlayerController::UpdateInput(const GameInput& input)
+void PlayerController::UpdateInput(const Camera& camera)
 {
 	uint32_t inputFlags = 0;
-	if (input.Input.IsPressed(Key::Ctrl))
+	if (Input::IsPressed(KeyCode::Ctrl))
 	{
 		inputFlags |= InputComponent::Crouch;
 	}
-	if (input.Input.IsPressed(Key::MouseLeft))
+	if (Input::IsPressed(KeyCode::MouseLeft))
 	{
 		inputFlags |= InputComponent::Attack;
 	}
-	if (input.Input.IsPressed(Key::MouseRight))
+	if (Input::IsPressed(KeyCode::MouseRight))
 	{
 		inputFlags |= InputComponent::Interact;
 	}
-	if (input.Input.IsPressed(Key::Space))
+	if (Input::IsPressed(KeyCode::Space))
 	{
 		inputFlags |= InputComponent::Jump;
 	}
-	if (input.Input.IsPressed(Key::Shift))
+	if (Input::IsPressed(KeyCode::Shift))
 	{
 		inputFlags |= InputComponent::Sprint;
 	}
 	m_InputComponent.InputFlags = inputFlags;
 
-	const float forwardX = cos(MathUtils::DegsToRadians(input.LookYaw));
-	const float forwardZ = sin(MathUtils::DegsToRadians(input.LookYaw));
+	const float forwardX = cos(MathUtils::DegsToRadians(camera.GetYaw()));
+	const float forwardZ = sin(MathUtils::DegsToRadians(camera.GetYaw()));
 
 	const float rightX = -forwardZ;
 	const float rightZ = forwardX;
@@ -123,22 +140,22 @@ void PlayerController::UpdateInput(const GameInput& input)
 	float moveX = 0.0f;
 	float moveZ = 0.0f;
 
-	if (input.Input.IsPressed(Key::W))
+	if (Input::IsPressed(KeyCode::W))
 	{
 		moveX += forwardX;
 		moveZ += forwardZ;
 	}
-	if (input.Input.IsPressed(Key::S))
+	if (Input::IsPressed(KeyCode::S))
 	{
 		moveX -= forwardX;
 		moveZ -= forwardZ;
 	}
-	if (input.Input.IsPressed(Key::A))
+	if (Input::IsPressed(KeyCode::A))
 	{
 		moveX -= rightX;
 		moveZ -= rightZ;
 	}
-	if (input.Input.IsPressed(Key::D))
+	if (Input::IsPressed(KeyCode::D))
 	{
 		moveX += rightX;
 		moveZ += rightZ;

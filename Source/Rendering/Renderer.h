@@ -16,6 +16,24 @@ public:
 	Renderer(int windowWidth, int windowHeight);
 
 	void Render(const World& world, const Camera& camera) const;
+
+private:
+	void InitFramebuffers();
+
+	void InitQuadData();
+
+	void ConfigureMatrices(const Camera& camera) const;
+
+	void RenderShadowPass(const std::vector<const Chunk*>& chunks, size_t cascade) const;
+
+	void RenderGBufferPass(const std::vector<const Chunk*>& chunks) const;
+
+	void RenderLightingPass(const World& world, const Camera& camera) const;
+
+	void RenderForwardPass(const World& world, const Camera& camera) const;
+
+	void DrawFullScreenQuad(uint32_t textureId) const;
+
 private:
 	int m_WindowWidth;
 	int m_WindowHeight;
@@ -34,20 +52,4 @@ private:
 	ChunkRenderer m_ChunkRenderer{ m_MatrixUBO };
 	BlockOutlineRenderer m_BlockOutlineRenderer{ m_MatrixUBO };
 	CrosshairRenderer m_CrosshairRenderer{ m_WindowWidth, m_WindowHeight };
-
-	void InitFramebuffers();
-
-	void InitQuadData();
-
-	void ConfigureMatrices(const Camera& camera) const;
-
-	void RenderShadowPass(const std::vector<const Chunk*>& chunks, size_t cascade) const;
-
-	void RenderGBufferPass(const std::vector<const Chunk*>& chunks) const;
-
-	void RenderLightingPass(const Camera& camera) const;
-
-	void RenderForwardPass(const World& world, const Camera& camera) const;
-
-	void DrawFullScreenQuad(uint32_t textureId) const;
 };

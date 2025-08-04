@@ -1,4 +1,4 @@
-#include "World.h"
+ #include "World.h"
 #include <algorithm>
 #include "ECS/EntityFactory.h"
 #include "ECS/Components.h"
@@ -20,9 +20,10 @@ extern DebugState g_DebugState;
 
 World::World()
 {
+	m_LightDir.Normalize();
 	RegisterComponents();
 	m_Player = EntityFactory::CreateDebugPlayer(m_ECS, { 0.0f, 50.0f, 0.0f });
-	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this, PlayerController::ControlMode::Debug);
+	m_PlayerController = std::make_unique<PlayerController>(m_Player, m_ECS, *this);
 
 	UpdateLoadedChunkQueue();
 	LoadChunks();
@@ -101,10 +102,31 @@ PlayerView World::GetPlayerView() const
 	};
 }
 
-void World::Update(const GameInput& input)
+void World::SetPlayerActiveBlock(BlockType block)
+{
+	m_PlayerController->SetActiveBlock(block);
+}
+
+BlockType World::GetPlayerActiveBlock() const
+{
+	return m_PlayerController->GetActiveBlock();
+}
+
+void World::SetPlayerPhysics(bool enabled)
+{
+	return m_PlayerController->SetPhysicsEnabled(enabled);
+}
+
+bool World::IsPlayerPhysicsEnabled() const
+{
+	return m_ECS.HasComponent<PhysicsComponent>(m_Player);
+}
+
+void World::Update(const Camera& camera)
 {
 	const ChunkCoords playerPositionOld = static_cast<ChunkCoords>(m_ECS.GetComponent<TransformComponent>(m_Player).Position);
-	m_PlayerController->Update(input);
+	if (m_PlayerControllerEnabled)
+		m_PlayerController->Update(camera);
 	PhysicsSystem::Update(m_ECS, *this);
 	const ChunkCoords playerPositionNew = static_cast<ChunkCoords>(m_ECS.GetComponent<TransformComponent>(m_Player).Position);
 

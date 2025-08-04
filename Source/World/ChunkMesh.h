@@ -23,8 +23,12 @@ public:
 	void BindOpaque() const;
 	void BindTransparent() const;
 	
+private: 
+	void HandleBlock(const Chunk& chunk, const World& world, size_t i);
+
+	void AddFace(const Chunk& chunk, const World& world, BlockFace face, BlockType blockType, LocalBlockCoords offset);
+	
 private:
-	/*std::vector<ChunkVertex> m_TransparentBuffer{};*/
 	size_t m_BufferIndex = 0;
 	size_t m_TransparentBufferIndex = 0;
 	VertexBuffer m_OpaqueVBO{};
@@ -32,9 +36,5 @@ private:
 	VertexArray m_OpaqueVAO{};
 	VertexArray m_TransparentVAO{};
 	// No index buffer because vertices take up only 4 bytes
-
-	void HandleBlock(const Chunk& chunk, const World& world, size_t i);
-
-	void AddFace(const Chunk& chunk, const World& world, BlockFace face, BlockType blockType, LocalBlockCoords offset);
 };
 

@@ -10,52 +10,36 @@ struct TransformComponent;
 struct LookComponent;
 struct PhysicsComponent;
 
-struct GameInput;
 class World;
+class Camera;
 
 class PlayerController
 {
 public:
-	enum class ControlMode
-	{
-		Default,
-		Debug
-	};
+	PlayerController(Entity player, ECS& ecs, World& world);
 
-	PlayerController(Entity player, ECS& ecs, World& world, ControlMode controlMode = ControlMode::Default);
+	void Update(const Camera& camera);
 
-	void Update(const GameInput& gameInput);
+	void SetPhysicsEnabled(bool yes);
 
-protected:
+	BlockType GetActiveBlock() const { return m_ActiveBlock; }
+
+	void SetActiveBlock(BlockType block) { m_ActiveBlock = block; }
+
+private:
+	void UpdateInput(const Camera& camera);
+	void UpdateLook(const Camera& camera);
+	void HandleBlockInteractions(const Camera& camera);
+	void HandleDebugMovement();
+
+private:
+	ECS& m_ECS;
+	Entity m_Player;
 	World& m_World;
 	TransformComponent& m_TransformComponent;
 	LookComponent& m_LookComponent;
 	InputComponent& m_InputComponent;
 	PhysicsComponent* m_PhysicsComponent;
-	ControlMode m_ControlMode;
 
-	void UpdateInput(const GameInput& input);
-	void UpdateLook(const GameInput& input);
-	void HandleBlockInteractions(const GameInput& input);
-	void HandleDebugMovement();
+	BlockType m_ActiveBlock = BlockType::Stone;
 };
-
-//class DefaultPlayerController : public BasePlayerController
-//{
-//public:
-//	DefaultPlayerController(Entity player, ECS& ecs, World& world);
-//private:
-//	PhysicsComponent& m_PhysicsComponent;
-//
-//	void HandleMovement(const GameInput& input) override;
-//	void UpdateLook(const GameInput& input) override;
-//	bool CanPlaceBlock(BlockCoords blockCoords) override;
-//};
-//
-//class DebugPlayerController : public BasePlayerController
-//{
-//public:
-//	DebugPlayerController(Entity player, ECS& ecs, World& world);
-//private:
-//	void HandleMovement(const GameInput& input) override;
-//};

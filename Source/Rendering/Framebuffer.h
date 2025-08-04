@@ -58,6 +58,12 @@ public:
 	void Unbind(int defaultWidth, int defaultHeight) const;
 	
 private:
+	void Destroy();
+
+	void AddTextureAttachment(const FramebufferAttachment& attachment);
+	void AddRenderbufferAttachment(const FramebufferAttachment& attachment);
+
+private:
 	uint32_t m_ID = 0;
 	int m_Width = 0;
 	int m_Height = 0;
@@ -66,9 +72,4 @@ private:
 
 	std::vector<uint32_t> m_TextureAttachments{};
 	std::vector<uint32_t> m_RenderbufferAttachments{};
-
-	void Destroy();
-
-	void AddTextureAttachment(const FramebufferAttachment& attachment);
-	void AddRenderbufferAttachment(const FramebufferAttachment& attachment);
 };

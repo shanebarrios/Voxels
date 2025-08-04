@@ -34,3 +34,7 @@ bool IsTransparent(BlockType blockType);
 bool IsTranslucent(BlockType blockType);
 
 bool IsInteractable(BlockType blockType);
+
+const char* BlockTypeToStr(BlockType blockType);
+
+const char** GetAllBlockTypeNames();

@@ -12,16 +12,7 @@ Entity EntityFactory::CreatePlayer(ECS& ecs, const WorldCoords& coords)
 			.Position = coords, 
 			.Yaw = -90.0f, 
 		});
-	ecs.AddComponent<PhysicsComponent>(player,
-		{
-			.Velocity = WorldCoords {},
-			.Collider =
-			{
-				.Min = WorldCoords {-0.3f, 0.0f, -0.3f},
-				.Max = WorldCoords {0.3f, 1.8f, 0.3f}
-			},
-			.Airborne = false,
-		});
+	ecs.AddComponent<PhysicsComponent>(player, CreatePlayerPhysicsComponent());
 	ecs.AddComponent<InputComponent>(player,
 		{
 			.MoveX = 0.0f,
@@ -58,4 +49,18 @@ Entity EntityFactory::CreateDebugPlayer(ECS& ecs, const WorldCoords& coords)
 			.Pitch = 0.0f
 		});
 	return player;
+}
+
+PhysicsComponent EntityFactory::CreatePlayerPhysicsComponent()
+{
+	return
+	{
+		.Velocity = WorldCoords {},
+		.Collider =
+		{
+			.Min = WorldCoords {-0.3f, 0.0f, -0.3f},
+			.Max = WorldCoords {0.3f, 1.8f, 0.3f}
+		},
+		.Airborne = false,
+	};
 }

@@ -16,6 +16,18 @@ static constexpr std::array<std::array<uint8_t, 6>, 256> k_IndexMappings
 	// Rest filled with 0s
 }};
 
+static const char* s_BlockTypeNames[] = {
+	"Air",
+	"Grass",
+	"Dirt",
+	"Stone",
+	"Log",
+	"Leaves",
+	"Sand",
+	"Water",
+	"Snow"
+};
+
 uint32_t GetTextureIndex(BlockFace face, BlockType blockType)
 {
 	assert(blockType != BlockType::Air && "Invalid block type");
@@ -50,4 +62,14 @@ bool IsTranslucent(BlockType blockType)
 bool IsInteractable(BlockType blockType)
 {
 	return blockType != BlockType::Water && blockType != BlockType::Air;
+}
+
+const char* BlockTypeToStr(BlockType blockType)
+{
+	return s_BlockTypeNames[static_cast<uint8_t>(blockType)];
+}
+
+const char** GetAllBlockTypeNames()
+{
+	return s_BlockTypeNames;
 }

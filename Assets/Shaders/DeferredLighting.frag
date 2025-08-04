@@ -14,7 +14,6 @@ out vec4 FragColor;
 layout (binding = 0) uniform sampler2D u_PositionSampler;
 layout (binding = 1) uniform sampler2D u_NormalSampler;
 layout (binding = 2) uniform sampler2D u_AlbedoSampler;
-//layout (binding = 3) uniform sampler2D u_SSAOSampler;
 layout (binding = 3) uniform sampler2DArray u_ShadowMap;
 
 uniform vec4 u_SubfrustaPlanes;
@@ -22,7 +21,7 @@ uniform vec3 u_LightDir;
 
 const vec3 k_LightColor = vec3(1.0, 1.0, 0.8);
 const float k_AmbientFactor = 0.4;
-const float k_DiffuseFactor = 1.0;
+const float k_DiffuseFactor = 0.8;
 
 float ShadowCalculation(vec3 fragPos)
 {
@@ -79,7 +78,7 @@ void main()
 		return;
 	};
 
-	vec3 ambient = k_AmbientFactor * albedo * mix(0.5, 1.0, occlusion);
+	vec3 ambient = k_AmbientFactor * albedo * mix(0.4, 1.0, occlusion);
 
 	float diff = max(dot(normal, -u_LightDir), 0.0) * k_DiffuseFactor;
 	vec3 diffuse = diff * albedo;

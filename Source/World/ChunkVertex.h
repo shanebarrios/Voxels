@@ -14,6 +14,7 @@ class BufferLayout;
 // Bit 24     : Texture V offset
 // Bits 25-27 : Block face
 // Bits 28-29 : Ambient occlusion
+// Bits 30-31 : Unused
 
 class ChunkVertex
 {

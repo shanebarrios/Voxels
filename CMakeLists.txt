@@ -22,6 +22,8 @@ file(GLOB_RECURSE SRC_FILES
 	"${CMAKE_SOURCE_DIR}/Source/*.c"
 	"${CMAKE_SOURCE_DIR}/Source/*.h"
 	"${CMAKE_SOURCE_DIR}/Source/*.hpp"
+	"${CMAKE_SOURCE_DIR}/ThirdParty/imgui/include/*.h"
+	"${CMAKE_SOURCE_DIR}/ThirdParty/imgui/src/*.cpp"
 )
 
 add_executable(Voxels ${SRC_FILES})
@@ -31,6 +33,7 @@ target_include_directories(Voxels PRIVATE
 	"${CMAKE_SOURCE_DIR}/ThirdParty/glm/include"
 	"${CMAKE_SOURCE_DIR}/ThirdParty/glad/include"
 	"${CMAKE_SOURCE_DIR}/ThirdParty/stb_image/include"
+	"${CMAKE_SOURCE_DIR}/ThirdParty/imgui/include"
 )
 
 target_link_libraries(Voxels PRIVATE

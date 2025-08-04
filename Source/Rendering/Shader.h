@@ -119,12 +119,14 @@ public:
     }
 
 private:
+    int GetUniformLoc(std::string_view name) const;
+    
+    void CacheUniformLocations();
+
+private:
     uint32_t m_ID{};
 
     std::array<int, UNIFORM_COUNT> m_UniformLocations{};
-
-    int GetUniformLoc(std::string_view name) const;
-    void CacheUniformLocations();
 };
 
 

@@ -24,7 +24,7 @@ public:
 	void RegisterComponent();
 
 	template <typename Component> 
-	void AddComponent(Entity entity, Component&& component);
+	Component& AddComponent(Entity entity, Component&& component);
 
 	template <typename Component>
 	void RemoveComponent(Entity entity);
@@ -51,16 +51,17 @@ public:
 	const ComponentArray<Component>& GetComponentArray() const;
 
 private:
+	template <typename Component>
+	ComponentID GetComponentID() const;
+
+	ComponentID GenerateComponentID() const;
+
+private:
 	Entity m_EntityCount = 0;
 
 	std::array<std::unique_ptr<IComponentArray>, 32> m_ComponentArrays{};
 
 	std::vector<Entity> m_FreedList{};
-
-	template <typename Component>
-	ComponentID GetComponentID() const;
-
-	ComponentID GenerateComponentID() const;
 };
 
 template <typename Component>
@@ -125,9 +126,9 @@ inline void ECS::RegisterComponent()
 }
 
 template <typename Component>
-inline void ECS::AddComponent(Entity entity, Component&& component)
+inline Component& ECS::AddComponent(Entity entity, Component&& component)
 {
-	GetComponentArray<Component>().Insert(entity, std::move(component));
+	return GetComponentArray<Component>().Insert(entity, std::move(component));
 }
 
 template <typename Component>

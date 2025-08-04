@@ -74,7 +74,7 @@ static AABB GetSubfrustaAABB(const SubfrustumCorners& corners)
 		max = glm::max(max, vec);
 	}
 
-	const float padding = 32.0f;
+	const float padding = 16.0f;
 	min -= glm::vec3{ padding };
 	max += glm::vec3{ padding };
 
@@ -247,13 +247,12 @@ void Renderer::InitQuadData()
 	m_QuadVAO.SetVertexBuffer(m_QuadVBO, layout);
 }
 
-static const glm::vec3 lightDir = glm::normalize(glm::vec3{ 0.6, -0.7, 0.2 });
-
 void Renderer::Render(const World& world, const Camera& camera) const
 {
 	ConfigureMatrices(camera);
 
 	const glm::mat4& view = camera.GetViewMatrix();
+	const glm::vec3 lightDir = glm::normalize(static_cast<glm::vec3>(world.GetLightDir()));
 	SubfrustumArray<AABB> subfrustaAABBs;
 	SubfrustumArray<glm::mat4> lightViewMatrices;
 
@@ -281,7 +280,7 @@ void Renderer::Render(const World& world, const Camera& camera) const
 
 		m_MatrixUBO.SetData((i + 2) * sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightProjView));
 	}
-
+	 
 	m_MatrixUBO.SetData(0u, sizeof(glm::mat4), glm::value_ptr(camera.GetProjectionMatrix()));
 	m_MatrixUBO.SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 
@@ -296,7 +295,7 @@ void Renderer::Render(const World& world, const Camera& camera) const
 
 	RenderGBufferPass(chunkRenderList);
 	
-	RenderLightingPass(camera);
+	RenderLightingPass(world, camera);
 
 	RenderForwardPass(world, camera);
 }
@@ -321,7 +320,7 @@ void Renderer::RenderGBufferPass(const std::vector<const Chunk*>& chunkList) con
 	m_ChunkRenderer.RenderGBuffer(chunkList);
 }
 
-void Renderer::RenderLightingPass(const Camera& camera) const
+void Renderer::RenderLightingPass(const World& world, const Camera& camera) const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, m_WindowWidth, m_WindowHeight);
@@ -336,6 +335,7 @@ void Renderer::RenderLightingPass(const Camera& camera) const
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, m_ShadowFramebuffer.GetTextureAttachment(0));
 
+	const glm::vec3 lightDir = static_cast<glm::vec3>(world.GetLightDir());
 	const glm::vec3 lightDirViewSpace = glm::normalize(camera.GetViewMatrix() * glm::vec4{ lightDir, 0.0 });
 	m_DeferredLightingShader.SetUniform(Shader::UNIFORM_LIGHT_DIR, lightDirViewSpace);
 

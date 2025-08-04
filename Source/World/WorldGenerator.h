@@ -56,13 +56,8 @@ public:
 	explicit WorldGenerator(World* world);
 
 	std::unique_ptr<Chunk> GenerateChunk(ChunkCoords coords);
-private:
-	World* m_World;
-	LRUCache<ChunkCoords2D, ChunkGenInfo> m_Cache{1024};
-	std::unordered_map<ChunkCoords, std::vector<LocalBlockPlacement>> m_ToPlace{};
-	Noise::OctavePerlinNoise m_HeightOctaveNoise;
-	Noise::OctavePerlinNoise m_MoistureOctaveNoise;
 
+private:
 	ChunkHeightMap GenerateHeightMap(ChunkCoords2D coords) const;
 
 	ChunkMoistureMap GenerateMoistureMap(ChunkCoords2D coords) const;
@@ -84,4 +79,11 @@ private:
 	Biome GetBiome(float height, float moisture) const;
 
 	BlockType GetBlock(int surfaceHeight, int blockHeight, Biome biome) const;
+
+private:
+	World* m_World;
+	LRUCache<ChunkCoords2D, ChunkGenInfo> m_Cache{1024};
+	std::unordered_map<ChunkCoords, std::vector<LocalBlockPlacement>> m_ToPlace{};
+	Noise::OctavePerlinNoise m_HeightOctaveNoise;
+	Noise::OctavePerlinNoise m_MoistureOctaveNoise;
 };

@@ -47,6 +47,7 @@ public:
 
 	const T* begin() const { return m_Data.data(); }
 	const T* end() const { return m_Data.data() + m_Index; }
+
 private:
 	std::array<T, N> m_Data;
 	size_t m_Index = 0;

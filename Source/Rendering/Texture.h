@@ -63,6 +63,7 @@ public:
 private:
 	explicit Texture2D(uint32_t id, TextureInternalFormat format, int width, int height);
 
+private:
 	uint32_t m_ID = 0;
 	TextureInternalFormat m_Format = TextureInternalFormat::R8;
 	int m_Width = 0;

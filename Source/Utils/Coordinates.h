@@ -2,7 +2,7 @@
 #include <cmath>
 #include <functional>
 #include <cstdint>
-#include <glm/glm.hpp>
+#include <glm/vec3.hpp>
 
 struct ChunkCoords2D
 {
@@ -240,6 +240,17 @@ struct WorldCoords
 	float Length() const
 	{
 		return std::sqrt(X * X + Y * Y + Z * Z);
+	}
+
+	void Normalize()
+	{
+		const float len = Length();
+		if (len > 0.0f)
+		{
+			X /= len;
+			Y /= len;
+			Z /= len;
+		}
 	}
 
 	explicit operator BlockCoords() const

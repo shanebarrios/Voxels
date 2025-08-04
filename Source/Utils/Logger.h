@@ -4,11 +4,6 @@
 #include <string_view>
 #include <chrono>
 #include <format>
-#include <source_location>
-#ifdef _WIN32
-	#define NOMINMAX
-	#include <Windows.h>
-#endif
 
 #define LOG_INFO(...)	Logger::Instance().Info(__VA_ARGS__)
 #define LOG_WARN(...)	Logger::Instance().Warn(__VA_ARGS__)
@@ -31,12 +26,14 @@ public:
 
 	template <typename... Args>
 	void Error(std::string_view format, Args&&... args);
+
 private:
 	Logger() = default;
 
 	template <typename... Args>
 	void Log(std::string_view level, std::string_view format, Args&&... args);
 
+private:
 	std::ostream* m_OutStream{&std::cout};
 };
 
@@ -44,18 +41,6 @@ inline Logger& Logger::Instance()
 {
 	static Logger logger{};
 	return logger;
-}
-
-inline void Logger::Init()
-{
-// Allows for colored text through escape sequences on Windows 10 and 11
-#ifdef _WIN32
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD dwMode = 0;
-	GetConsoleMode(hConsole, &dwMode);
-	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	SetConsoleMode(hConsole, dwMode);
-#endif
 }
 
 template <typename... Args>

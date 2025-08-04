@@ -8,13 +8,13 @@
 
 using Entity = uint32_t;
 
-class Input;
-
 struct Plane
 {
     glm::vec3 Normal;
     glm::vec3 P0;
 };
+
+class UIOverlay;
 
 class Camera {
 public:
@@ -40,10 +40,25 @@ public:
     float GetYaw() const { return m_Yaw; }
     float GetPitch() const { return m_Pitch; }
     
-    void Update(const Input& input, float alpha);
+    void Update(float alpha);
     void Tick();
 
     void AttachView(const PlayerView& view);
+
+    void ToggleControls();
+
+    void SetFOVDegreesHorizontal(float degrees);
+
+	void SetSens(float sense) { m_Sens = sense; }
+
+    friend class UIOverlay;
+
+private:
+    void InitMatrices();
+
+    void UpdateOrientation();
+
+    void UpdateDirection();
 
 private:
     glm::vec3 m_Pos {};
@@ -60,7 +75,7 @@ private:
     PlayerView m_PlayerView {};
 
     float m_Sens = Config::MouseSensitivity;
-    float m_Fov = glm::radians(Config::VerticalFOV);
+    float m_Fov = Config::HorizontalFOV;
     float m_AspectRatio = 
         static_cast<float>(Config::WindowWidth) / 
         static_cast<float>(Config::WindowHeight);
@@ -72,10 +87,5 @@ private:
     float m_LastCursorPosY{};
 
     bool m_First = true;
-
-    void InitMatrices();
-
-    void UpdateOrientation(const Input& input);
-
-    void UpdateDirection();
+    bool m_ControlsEnabled = true;
 };

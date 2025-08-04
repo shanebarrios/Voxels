@@ -22,7 +22,7 @@ public:
 
 	void Destroy(Entity entity) override { Remove(entity); }
 
-	void Insert(Entity entity, Component&& component);
+	Component& Insert(Entity entity, Component&& component);
 
 	Component& Get(Entity entity);
 
@@ -92,13 +92,14 @@ inline ComponentArray<Component, N>::ComponentArray()
 }
 
 template <typename Component, size_t N>
-inline void ComponentArray<Component, N>::Insert(Entity entity, Component&& component)
+inline Component& ComponentArray<Component, N>::Insert(Entity entity, Component&& component)
 {
 	assert(entity < N && m_Count < N);
 	m_Dense[m_Count] = entity;
 	m_Components[m_Count] = std::move(component);
 	m_Sparse[entity] = m_Count;
 	m_Count++;
+	return m_Components[m_Count - 1];
 }
 
 template <typename Component, size_t N>

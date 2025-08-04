@@ -71,8 +71,7 @@ public:
 	}
 
 private:
-
-	struct Node 
+	struct Node
 	{
 		TKey Key;
 		TVal Val;
@@ -80,17 +79,12 @@ private:
 		Node* Prev;
 	};
 
-	size_t m_Capacity;
-	Node* m_Head = nullptr;
-	Node* m_Tail = nullptr;
-	std::unordered_map<TKey, Node*> m_Cache{};
-
 	void MoveToHead(Node* node)
 	{
 		if (node == m_Head) return;
 
 		if (node == m_Tail) m_Tail = node->Prev;
-		
+
 		if (node->Next) node->Next->Prev = node->Prev;
 
 		if (node->Prev) node->Prev->Next = node->Next;
@@ -101,7 +95,7 @@ private:
 		m_Head = node;
 	}
 
-	void EvictTail() 
+	void EvictTail()
 	{
 		auto it = m_Cache.find(m_Tail->Key);
 		m_Cache.erase(it);
@@ -110,5 +104,11 @@ private:
 		delete m_Tail;
 		m_Tail = newTail;
 	}
+
+private:
+	size_t m_Capacity;
+	Node* m_Head = nullptr;
+	Node* m_Tail = nullptr;
+	std::unordered_map<TKey, Node*> m_Cache{};
 };
 

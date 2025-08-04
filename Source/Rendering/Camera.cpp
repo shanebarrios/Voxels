@@ -3,9 +3,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <cassert>
-#include "Window.h"
+#include "Input.h"
 #include "ECS/Components.h"
 #include "Utils/Logger.h"
+
+static float HorizontalToVerticalFov(float horizontalFov, float aspectRatio)
+{
+	return 2.0f * glm::atan(glm::tan(horizontalFov / 2.0f) / aspectRatio);
+}
 
 enum FrustumCorners
 {
@@ -39,6 +44,8 @@ void Camera::InitMatrices()
 
     constexpr float lambda = 0.8f;
 
+	const float fov = HorizontalToVerticalFov(glm::radians(m_Fov), m_AspectRatio);
+
     m_SubfrustaPlaneDepths[0] = nearPlane;
     m_SubfrustaPlaneDepths[NUM_CASCADES] = farPlane;
     for (size_t i = 1; i < NUM_CASCADES; i++)
@@ -51,10 +58,10 @@ void Camera::InitMatrices()
     }
     for (size_t i = 0; i < NUM_CASCADES; i++)
     {
-        m_SubfrustaProjectionMatrices[i] = glm::perspective(m_Fov, m_AspectRatio, m_SubfrustaPlaneDepths[i], m_SubfrustaPlaneDepths[i + 1]);
+        m_SubfrustaProjectionMatrices[i] = glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[i], m_SubfrustaPlaneDepths[i + 1]);
     }
 
-    m_Projection = glm::perspective(m_Fov, m_AspectRatio, nearPlane, farPlane);
+    m_Projection = glm::perspective(fov, m_AspectRatio, nearPlane, farPlane);
     m_View = glm::lookAt(m_Pos, m_Pos + m_Direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
 }
 
@@ -65,9 +72,32 @@ void Camera::AttachView(const PlayerView& playerView)
     m_LastTickPosition = m_CurTickPosition;
 }
 
-void Camera::Update(const Input& input, float alpha)
+void Camera::ToggleControls()
+{
+	m_ControlsEnabled = !m_ControlsEnabled;
+    if (m_ControlsEnabled)
+    {
+        m_First = true;
+    }
+}
+
+void Camera::SetFOVDegreesHorizontal(float degrees)
+{
+    m_Fov = degrees;
+	const float fov = HorizontalToVerticalFov(glm::radians(m_Fov), m_AspectRatio);
+    m_Projection = glm::perspective(
+        fov, m_AspectRatio, m_SubfrustaPlaneDepths[0], m_SubfrustaPlaneDepths[NUM_CASCADES]
+    );
+    for (size_t i = 0; i < NUM_CASCADES; i++)
+    {
+        m_SubfrustaProjectionMatrices[i] = glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[i], m_SubfrustaPlaneDepths[i + 1]);
+    }
+}
+
+void Camera::Update(float alpha)
 { 
-    UpdateOrientation(input);
+	if (m_ControlsEnabled)
+        UpdateOrientation();
     m_Pos = static_cast<glm::vec3>(m_LastTickPosition * (1 - alpha) + m_CurTickPosition * alpha);
     m_View = glm::lookAt(m_Pos, m_Pos + m_Direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
 }
@@ -157,10 +187,10 @@ void Camera::Tick()
     m_CurTickPosition = m_PlayerView.Transform->Position + m_PlayerView.Look->Offset;
 }
 
-void Camera::UpdateOrientation(const Input& input)
+void Camera::UpdateOrientation()
 {
-    const float cursorPosX = static_cast<float>(input.GetCursorPosX());
-    const float cursorPosY = static_cast<float>(input.GetCursorPosY());
+    const float cursorPosX = Input::GetMousePosX();
+    const float cursorPosY = Input::GetMousePosY();
 
     if (m_First)
     {

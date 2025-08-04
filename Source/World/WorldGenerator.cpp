@@ -11,13 +11,13 @@ struct
 {
 	Noise::OctaveConfig OctaveConfig
 	{
-		.NumOctaves = 6,
+		.NumOctaves = 4,
 		.Persistence = 0.5f,
 		.Lacunarity = 2.0f,
 		.BaseFrequency = 0.005f
 	};
 
-	float Exponent = 2.0f;
+	float Exponent = 1.0f;
 	int BaseHeight = 0;
 	int Amplitude = 100;
 } HeightMapConfig;

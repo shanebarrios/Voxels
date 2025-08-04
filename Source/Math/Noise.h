@@ -20,11 +20,13 @@ namespace Noise
 		explicit OctavePerlinNoise(OctaveConfig config, int seed = 0);
 
 		float Sample(float x, float y) const;
+
+	private:
+		void EstimateMinMax();
+
 	private:
 		OctaveConfig m_Config;
 		float m_MinEstimate = std::numeric_limits<float>::max();
 		float m_MaxEstimate = std::numeric_limits<float>::lowest();
-		
-		void EstimateMinMax();
 	};
 }
