@@ -38,7 +38,7 @@ struct ChunkCoords
 		};
 	}
 
-	ChunkCoords& operator+=(const ChunkCoords& other)
+	constexpr ChunkCoords& operator+=(const ChunkCoords& other)
 	{
 		X += other.X;
 		Y += other.Y;
@@ -56,7 +56,7 @@ struct ChunkCoords
 		};
 	}
 
-	ChunkCoords& operator-=(const ChunkCoords& other)
+	constexpr ChunkCoords& operator-=(const ChunkCoords& other)
 	{
 		X -= other.X;
 		Y -= other.Y;
@@ -74,7 +74,7 @@ struct ChunkCoords
 		};
 	}
 
-	ChunkCoords& operator*=(int k)
+	constexpr ChunkCoords& operator*=(int k)
 	{
 		X *= k;
 		Y *= k;
@@ -115,7 +115,7 @@ struct LocalBlockCoords
 	uint8_t Y = 0;
 	uint8_t Z = 0;
 
-	size_t ToIndex() const 
+	constexpr size_t ToIndex() const 
 	{ 
 		return 
 			static_cast<size_t>(X) | 
@@ -129,7 +129,7 @@ struct LocalBlockCoords2D
 	uint8_t X = 0;
 	uint8_t Z = 0;
 
-	size_t ToIndex() const
+	constexpr size_t ToIndex() const
 	{
 		return 
 			static_cast<size_t>(X) | 
@@ -143,7 +143,7 @@ struct BlockCoords
 	int Y = 0;
 	int Z = 0;
 
-	explicit operator ChunkCoords() const
+	explicit constexpr operator ChunkCoords() const
 	{
 		return
 		{
@@ -159,7 +159,7 @@ struct BlockCoords
 		};
 	}
 
-	explicit operator ChunkCoords2D() const
+	explicit constexpr operator ChunkCoords2D() const
 	{
 		return
 		{
@@ -172,7 +172,7 @@ struct BlockCoords
 		};
 	}
 
-	explicit operator LocalBlockCoords() const
+	explicit constexpr operator LocalBlockCoords() const
 	{
 		return
 		{
@@ -192,7 +192,7 @@ struct BlockCoords
 		};
 	}
 
-	BlockCoords& operator+=(const BlockCoords& other)
+	constexpr BlockCoords& operator+=(const BlockCoords& other)
 	{
 		X += other.X;
 		Y += other.Y;
@@ -210,7 +210,7 @@ struct BlockCoords
 		};
 	}
 
-	BlockCoords& operator-=(const BlockCoords& other)
+	constexpr BlockCoords& operator-=(const BlockCoords& other)
 	{
 		X -= other.X;
 		Y -= other.Y;
@@ -228,7 +228,7 @@ struct BlockCoords
 		};
 	}
 
-	BlockCoords& operator*=(int k)
+	constexpr BlockCoords& operator*=(int k)
 	{
 		X *= k;
 		Y *= k;
@@ -243,7 +243,7 @@ struct WorldCoords
 	float Y = 0.0f;
 	float Z = 0.0f;
 
-	static WorldCoords Lerp(const WorldCoords& c1, const WorldCoords& c2, float alpha)
+	static constexpr WorldCoords Lerp(const WorldCoords& c1, const WorldCoords& c2, float alpha)
 	{
 		return
 		{
@@ -290,7 +290,7 @@ struct WorldCoords
 		};
 	}
 
-	explicit operator glm::vec3() const
+	explicit constexpr operator glm::vec3() const
 	{
 		return
 		{
@@ -310,7 +310,7 @@ struct WorldCoords
 		};
 	}
 
-	WorldCoords& operator+=(const WorldCoords& other)
+	constexpr WorldCoords& operator+=(const WorldCoords& other)
 	{
 		X += other.X;
 		Y += other.Y;
@@ -328,7 +328,7 @@ struct WorldCoords
 		};
 	}
 
-	WorldCoords& operator-=(const WorldCoords& other)
+	constexpr WorldCoords& operator-=(const WorldCoords& other)
 	{
 		X -= other.X;
 		Y -= other.Y;
@@ -366,7 +366,7 @@ struct WorldCoords
 		};
 	}
 
-	WorldCoords& operator*=(float k)
+	constexpr WorldCoords& operator*=(float k)
 	{
 		X *= k;
 		Y *= k;

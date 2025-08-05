@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bit>
+#include <cstdint>
 
 #if defined (_MSC_VER) && !defined(__clang__)
 #define unreachable() __assume(false)

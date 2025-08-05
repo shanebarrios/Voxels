@@ -5,6 +5,7 @@
 #include <array>
 #include <optional>
 #include "Utils/Coordinates.h"
+#include "Utils/Common.h"
 
 namespace ChunkUtils
 {

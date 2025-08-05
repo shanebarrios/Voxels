@@ -28,7 +28,7 @@ public:
 	void Clear() { m_Index = 0; }
 
 	const T* Data() const { return m_Data.Data(); }
-	T* Data() const { return m_Data.Data(); }
+	T* Data() { return m_Data.Data(); }
 
 	T& operator[](size_t index)
 	{
