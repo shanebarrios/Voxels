@@ -38,10 +38,9 @@ BlockType World::GetBlock(BlockCoords blockCoords) const
 	auto it = m_LoadedChunks.find(chunkCoords);
 	if (it != m_LoadedChunks.end())
 	{
-
-		const uint8_t x = static_cast<uint8_t>(blockCoords.X - 16 * chunkCoords.X);
-		const uint8_t y = static_cast<uint8_t>(blockCoords.Y - 16 * chunkCoords.Y);
-		const uint8_t z = static_cast<uint8_t>(blockCoords.Z - 16 * chunkCoords.Z);
+		const uint8_t x = static_cast<uint8_t>(blockCoords.X - CHUNK_DIMENSION * chunkCoords.X);
+		const uint8_t y = static_cast<uint8_t>(blockCoords.Y - CHUNK_DIMENSION * chunkCoords.Y);
+		const uint8_t z = static_cast<uint8_t>(blockCoords.Z - CHUNK_DIMENSION * chunkCoords.Z);
 		return it->second->GetBlock(x, y, z);
 	}
 	else
@@ -65,9 +64,9 @@ bool World::PlaceBlock(BlockType block, BlockCoords blockCoords)
 	auto it = m_LoadedChunks.find(chunkCoords);
 	if (it != m_LoadedChunks.end())
 	{
-		const uint8_t x = static_cast<uint8_t>(blockCoords.X - 16 * chunkCoords.X);
-		const uint8_t y = static_cast<uint8_t>(blockCoords.Y - 16 * chunkCoords.Y);
-		const uint8_t z = static_cast<uint8_t>(blockCoords.Z - 16 * chunkCoords.Z);
+		const uint8_t x = static_cast<uint8_t>(blockCoords.X - CHUNK_DIMENSION * chunkCoords.X);
+		const uint8_t y = static_cast<uint8_t>(blockCoords.Y - CHUNK_DIMENSION * chunkCoords.Y);
+		const uint8_t z = static_cast<uint8_t>(blockCoords.Z - CHUNK_DIMENSION * chunkCoords.Z);
 		it->second->SetBlock(block, x, y, z);
 
 		std::array<ChunkCoords, 3> buf;
@@ -233,7 +232,7 @@ void World::UpdateChunkMeshes()
 			updated++;
 			chunk->RebuildMesh(*this);
 		}
-		if (updated > 32) break;
+		if (updated > 8) break;
 	}
 }
 
@@ -263,7 +262,7 @@ void World::UpdateChunkRenderList()
  
 void World::LoadChunks()
 {
-	static constexpr int maxChunksLoaded = 256;
+	static constexpr int maxChunksLoaded = 64;
 	for (int i = 0; i < maxChunksLoaded && m_ChunkLoadIndex < m_ChunkLoadList.size(); i++)
 	{
 		g_DebugState.Loaded++;

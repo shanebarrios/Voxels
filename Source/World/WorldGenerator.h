@@ -26,8 +26,8 @@ enum class Biome : uint8_t
 	Desert
 };
 
-using ChunkHeightMap = std::array<float, 16 * 16>;
-using ChunkMoistureMap = std::array<float, 16 * 16>;
+using ChunkHeightMap = std::array<float, CHUNK_AREA>;
+using ChunkMoistureMap = std::array<float, CHUNK_AREA>;
 
 struct ChunkGenInfo
 {
@@ -82,7 +82,7 @@ private:
 
 private:
 	World* m_World;
-	LRUCache<ChunkCoords2D, ChunkGenInfo> m_Cache{1024};
+	LRUCache<ChunkCoords2D, ChunkGenInfo> m_Cache{256};
 	std::unordered_map<ChunkCoords, std::vector<LocalBlockPlacement>> m_ToPlace{};
 	Noise::OctavePerlinNoise m_HeightOctaveNoise;
 	Noise::OctavePerlinNoise m_MoistureOctaveNoise;

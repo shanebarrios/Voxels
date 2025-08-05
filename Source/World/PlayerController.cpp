@@ -10,6 +10,7 @@
 #include "Physics/Raycast.h"
 #include "Physics/PhysicsUtils.h"
 #include "Input.h"
+#include "Utils/Logger.h"
 
 PlayerController::PlayerController(Entity player, ECS& ecs, World& world) :
 	m_ECS{ ecs },

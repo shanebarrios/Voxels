@@ -2,17 +2,11 @@
 #include <vector>
 #include <utility>
 #include "Chunk.h"
+#include "Utils/Common.h"
 #include "ChunkUtils.h"
 #include "World.h"
 
-// Move this to separate header eventually
-#if defined (_MSC_VER) && !defined(__clang__)
-	#define unreachable() __assume(false)
-#else
-	#define unreachable() __builtin_unreachable()
-#endif
-
-static constexpr std::array<std::array<ChunkVertex, ChunkVertex::k_VerticesPerFace>, static_cast<size_t>(BlockFace::Count)> k_FaceVertices
+static constexpr std::array<std::array<ChunkVertex, ChunkVertex::VERTICES_PER_FACE>, static_cast<size_t>(BlockFace::Count)> k_FaceVertices
 {{
 	// Front
 	{{
@@ -72,7 +66,7 @@ static constexpr std::array<std::array<ChunkVertex, ChunkVertex::k_VerticesPerFa
 
 static constexpr bool InChunkBounds(int x, int y, int z)
 {
-	return x >= 0 && x < Chunk::k_Width && y >= 0 && y < Chunk::k_Height && z >= 0 && z < Chunk::k_Depth;
+	return x >= 0 && x < CHUNK_DIMENSION && y >= 0 && y < CHUNK_DIMENSION && z >= 0 && z < CHUNK_DIMENSION;
 }
 
 static BlockType GetBlock(const Chunk& chunk, const World& world, BlockCoords offset)
@@ -83,9 +77,10 @@ static BlockType GetBlock(const Chunk& chunk, const World& world, BlockCoords of
 	}
 	else
 	{
+		constexpr int intDim = static_cast<int>(CHUNK_DIMENSION);
 		const ChunkCoords chunkCoords = chunk.GetCoords();
 		const BlockCoords blockCoords =
-			BlockCoords{ chunkCoords.X * 16, chunkCoords.Y * 16, chunkCoords.Z * 16 } + offset;
+			BlockCoords{ chunkCoords.X * intDim, chunkCoords.Y * intDim, chunkCoords.Z * intDim } + offset;
 		return world.GetBlock(blockCoords);
 	}
 }
@@ -145,8 +140,8 @@ static uint8_t GetOcclusionFactor(const Chunk& chunk, const World& world, ChunkV
 }
 
 // Per frame heap allocations are slow and this is too big for the stack
-static ChunkVertex s_Buffer[16 * 16 * 16 * 6 * 6];
-static ChunkVertex s_TransparentBuffer[16 * 16 * 16 * 6 * 6];
+static ChunkVertex s_Buffer[CHUNK_VOLUME * 6 * 6];
+static ChunkVertex s_TransparentBuffer[CHUNK_VOLUME * 6 * 6];
 
 ChunkMesh::ChunkMesh()
 {
@@ -160,7 +155,7 @@ void ChunkMesh::Rebuild(const Chunk& chunk, const World& world)
 	m_BufferIndex = 0;
 	m_TransparentBufferIndex = 0;
 	const BlockType* blocks = chunk.GetBlocks();
-	for (size_t i = 0; i < Chunk::k_Size; i++)
+	for (size_t i = 0; i < CHUNK_VOLUME; i++)
 	{
 		HandleBlock(chunk, world, i);
 	}
@@ -195,7 +190,7 @@ void ChunkMesh::HandleBlock(const Chunk& chunk, const World& world, size_t i)
 
 void ChunkMesh::AddFace(const Chunk& chunk, const World& world, BlockFace face, BlockType blockType, LocalBlockCoords offset)
 {
-	for (size_t i = 0; i < ChunkVertex::k_VerticesPerFace; i++)
+	for (size_t i = 0; i < ChunkVertex::VERTICES_PER_FACE; i++)
 	{
 		ChunkVertex vertex = k_FaceVertices[static_cast<size_t>(face)][i];
 		vertex.SetAmbientOcclusion(GetOcclusionFactor(chunk, world, vertex, offset));

@@ -1,6 +1,7 @@
-#version 460 core
+#version 330 core
 
 layout (location = 0) in uint a_Data;
+layout (location = 1) in uint a_DataExtended;
 
 layout (std140) uniform Matrices
 {
@@ -30,15 +31,15 @@ void main()
 {
 	ivec3 chunkOffset = ivec3
 	(
-		a_Data & 0x1Fu,
-		(a_Data >> 5u) & 0x1Fu, 
-		(a_Data >> 10u) & 0x1Fu
+		a_Data & 0x3Fu,
+		(a_Data >> 6u) & 0x3Fu, 
+		(a_Data >> 12u) & 0x3Fu
 	);
 
-	uint textureIndex = (a_Data >> 15u) & 0xFFu;
-	float u = (a_Data >> 23u) & 0x1u;
-	float v = (a_Data >> 24u) & 0x1u;
-	uint face = (a_Data >> 25u) & 0x7u;
+	uint textureIndex = (a_Data >> 18u) & 0xFFu;
+	float u = (a_Data >> 26u) & 0x1u;
+	float v = (a_Data >> 27u) & 0x1u;
+	uint face = (a_Data >> 28u) & 0x7u;
 
 	v_Normal = mat3(u_View) * k_FaceNormals[face];
 
@@ -47,7 +48,7 @@ void main()
 		(15u - (textureIndex >> 4u) + v) / 16.0
 	);
 
-	v_AmbientFactor = float((a_Data >> 28u) & 0x3u) / 3.0;
+	v_AmbientFactor = float(a_DataExtended & 0x3u) / 3.0;
 
 	vec4 worldPosition = vec4(u_Position + chunkOffset, 1.0);
 	vec4 viewPosition = u_View * worldPosition;

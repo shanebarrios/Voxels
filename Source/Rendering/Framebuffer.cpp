@@ -1,6 +1,7 @@
 #include "Framebuffer.h"
 #include <glad/glad.h>
 #include "Utils/Logger.h"
+#include "Utils/Common.h"
 
 static bool IsColorAttachment(FramebufferAttachmentFormat format)
 {
@@ -49,6 +50,8 @@ static GLenum AttachmentTypeToTarget(FramebufferAttachmentType type)
 		return GL_TEXTURE_2D_ARRAY;
 	case FramebufferAttachmentType::Renderbuffer:
 		return GL_RENDERBUFFER;
+	default:
+		unreachable();
 	}
 }
 
@@ -76,6 +79,8 @@ static GLenum AttachmentFormatToInternalGL(FramebufferAttachmentFormat format)
 		return GL_DEPTH24_STENCIL8;
 	case FramebufferAttachmentFormat::Depth24:
 		return GL_DEPTH_COMPONENT24;
+	default:
+		unreachable();
 	}
 }
 
@@ -99,6 +104,8 @@ static GLenum AttachmentFormatToGL (FramebufferAttachmentFormat format)
 		return GL_DEPTH_COMPONENT;
 	case FramebufferAttachmentFormat::Depth24Stencil8:
 		return GL_DEPTH_STENCIL;
+	default:
+		unreachable();
 	}
 }
 
@@ -120,6 +127,8 @@ static GLenum AttachmentFormatToType(FramebufferAttachmentFormat format)
 		return GL_UNSIGNED_INT_24_8;
 	case FramebufferAttachmentFormat::Depth24:
 		return GL_UNSIGNED_INT;
+	default:
+		unreachable();
 	}
 }
 

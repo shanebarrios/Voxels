@@ -1,4 +1,5 @@
 #pragma once
+#include "Utils/Common.h"
 #include <cmath>
 #include <functional>
 #include <cstdint>
@@ -116,7 +117,10 @@ struct LocalBlockCoords
 
 	size_t ToIndex() const 
 	{ 
-		return static_cast<size_t>(X) | static_cast<size_t>(Z) << 4u | static_cast<size_t>(Y) << 8u; 
+		return 
+			static_cast<size_t>(X) | 
+			static_cast<size_t>(Z) << CHUNK_COORD_BIT_COUNT | 
+			static_cast<size_t>(Y) << CHUNK_COORD_BIT_COUNT * 2; 
 	}
 };
 
@@ -127,7 +131,9 @@ struct LocalBlockCoords2D
 
 	size_t ToIndex() const
 	{
-		return static_cast<size_t>(X) | static_cast<size_t>(Z) << 4u;
+		return 
+			static_cast<size_t>(X) | 
+			static_cast<size_t>(Z) << CHUNK_COORD_BIT_COUNT;
 	}
 };
 
@@ -141,9 +147,15 @@ struct BlockCoords
 	{
 		return
 		{
-			X >= 0 ? X / 16 : (X - 15) / 16,
-			Y >= 0 ? Y / 16 : (Y - 15) / 16,
-			Z >= 0 ? Z / 16 : (Z - 15) / 16
+			X >= 0 ? 
+				X / CHUNK_DIMENSION : 
+				(X - CHUNK_DIMENSION + 1) / CHUNK_DIMENSION,
+			Y >= 0 ? 
+				Y / CHUNK_DIMENSION : 
+				(Y - CHUNK_DIMENSION + 1) / CHUNK_DIMENSION,
+			Z >= 0 ?
+				Z / CHUNK_DIMENSION : 
+				(Z - CHUNK_DIMENSION + 1) / CHUNK_DIMENSION
 		};
 	}
 
@@ -151,8 +163,12 @@ struct BlockCoords
 	{
 		return
 		{
-			X >= 0 ? X / 16 : (X - 15) / 16,
-			Z >= 0 ? Z / 16 : (Z - 15) / 16
+			X >= 0 ? 
+				X / CHUNK_DIMENSION : 
+				(X - CHUNK_DIMENSION + 1) / CHUNK_DIMENSION,
+			Z >= 0 ? 
+				Z / CHUNK_DIMENSION : 
+				(Z - CHUNK_DIMENSION + 1) / CHUNK_DIMENSION
 		};
 	}
 
@@ -160,9 +176,9 @@ struct BlockCoords
 	{
 		return
 		{
-			static_cast<uint8_t>(X & 0xF),
-			static_cast<uint8_t>(Y & 0xF),
-			static_cast<uint8_t>(Z & 0xF)
+			static_cast<uint8_t>(X & CHUNK_COORD_MASK),
+			static_cast<uint8_t>(Y & CHUNK_COORD_MASK),
+			static_cast<uint8_t>(Z & CHUNK_COORD_MASK)
 		};
 	}
 
@@ -265,11 +281,12 @@ struct WorldCoords
 
 	explicit operator ChunkCoords() const
 	{
+		constexpr int intDim = static_cast<int>(CHUNK_DIMENSION);
 		return
 		{
-			static_cast<int>(std::floor(X)) / 16,
-			static_cast<int>(std::floor(Y)) / 16,
-			static_cast<int>(std::floor(Z)) / 16
+			static_cast<int>(std::floor(X)) / intDim,
+			static_cast<int>(std::floor(Y)) / intDim,
+			static_cast<int>(std::floor(Z)) / intDim
 		};
 	}
 

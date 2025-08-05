@@ -1,22 +1,16 @@
 #pragma once
 
+#include "Utils/Common.h"
 #include "Block.h"
+#include "Utils/Common.h"
 #include "ChunkMesh.h"
 #include "Utils/Coordinates.h"
-#include <array>
-#include <glm/glm.hpp>
 
 class World;
 
 class Chunk
 {
 public:
-	static constexpr size_t k_Width = 16;
-	static constexpr size_t k_Depth = 16;
-	static constexpr size_t k_Height = 16;
-	static constexpr size_t k_Size = k_Width * k_Depth * k_Height;
-
-
 	Chunk();
 	explicit Chunk(ChunkCoords coords);
 
@@ -38,7 +32,7 @@ public:
 	bool NeedsRebuild() const { return m_NeedsRebuild && m_PotentiallyHasBlocks; }
 
 private:
-	BlockType m_Blocks[k_Size]{};
+	BlockType m_Blocks[CHUNK_VOLUME]{};
 	ChunkCoords m_Coords{};
 	ChunkMesh m_Mesh{};
 

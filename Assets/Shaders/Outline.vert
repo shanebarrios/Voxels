@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 
 layout (location = 0) in ivec3 a_Pos;
 

@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 
 layout (std140) uniform Matrices
 {
@@ -11,10 +11,10 @@ in vec2 v_TexCoords;
 
 out vec4 FragColor;
 
-layout (binding = 0) uniform sampler2D u_PositionSampler;
-layout (binding = 1) uniform sampler2D u_NormalSampler;
-layout (binding = 2) uniform sampler2D u_AlbedoSampler;
-layout (binding = 3) uniform sampler2DArray u_ShadowMap;
+uniform sampler2D u_PositionSampler;
+uniform sampler2D u_NormalSampler;
+uniform sampler2D u_AlbedoSampler;
+uniform sampler2DArray u_ShadowMap;
 
 uniform vec4 u_SubfrustaPlanes;
 uniform vec3 u_LightDir;

@@ -31,7 +31,7 @@ void ChunkRenderer::RenderGBuffer(const std::vector<const Chunk*>& chunkList) co
 		if (mesh.NumOpaqueVertices() == 0) continue;
 		mesh.BindOpaque();
 		const ChunkCoords coords = chunk->GetCoords();
-		m_GBufferShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * 16, coords.Y * 16, coords.Z * 16);
+		m_GBufferShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * CHUNK_DIMENSION, coords.Y * CHUNK_DIMENSION, coords.Z * CHUNK_DIMENSION);
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.NumOpaqueVertices()));
 		g_DebugState.DrawCalls++;
 	}
@@ -49,7 +49,7 @@ void ChunkRenderer::RenderDepth(const std::vector<const Chunk*>& chunkList, size
 		const ChunkMesh& mesh = chunk->GetMesh();
 		mesh.BindOpaque();
 		const ChunkCoords coords = chunk->GetCoords();
-		m_DepthShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * 16, coords.Y * 16, coords.Z * 16);
+		m_DepthShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * CHUNK_DIMENSION, coords.Y * CHUNK_DIMENSION, coords.Z * CHUNK_DIMENSION);
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.NumOpaqueVertices()));
 		g_DebugState.DrawCalls++;
 	}
@@ -65,7 +65,7 @@ void ChunkRenderer::RenderWater(const std::vector<const Chunk*>& chunkList) cons
 		const ChunkMesh& mesh = chunk->GetMesh();
 		mesh.BindTransparent();
 		const ChunkCoords coords = chunk->GetCoords();
-		m_GBufferShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * 16, coords.Y * 16, coords.Z * 16);
+		m_GBufferShader.SetUniform(Shader::UNIFORM_POSITION, coords.X * CHUNK_DIMENSION, coords.Y * CHUNK_DIMENSION, coords.Z * CHUNK_DIMENSION);
 		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mesh.NumTransparentVertices()));
 		g_DebugState.DrawCalls++;
 	}

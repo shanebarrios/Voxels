@@ -131,7 +131,7 @@ WorldGenerator::WorldGenerator(World* world) :
 float WorldGenerator::GenerateHeight(int blockX, int blockZ) const
 {
 	const float noise = m_HeightOctaveNoise.Sample(blockX, blockZ);
-	const float expNoise = std::powf(noise * 1.2f, HeightMapConfig.Exponent);
+	const float expNoise = std::powf(noise * 1.2f, 1.5f);
 	return expNoise;
 }
 
@@ -178,11 +178,11 @@ Biome WorldGenerator::GetBiome(float height, float moisture) const
 ChunkHeightMap WorldGenerator::GenerateHeightMap(ChunkCoords2D coords) const
 {
 	ChunkHeightMap heightMap;
-	for (uint8_t z = 0; z < 16; z++)
+	for (uint8_t z = 0; z < CHUNK_DIMENSION; z++)
 	{
-		for (uint8_t x = 0; x < 16; x++)
+		for (uint8_t x = 0; x < CHUNK_DIMENSION; x++)
 		{
-			const float height = GenerateHeight(coords.X * 16 + x, coords.Z * 16 + z);
+			const float height = GenerateHeight(coords.X * CHUNK_DIMENSION + x, coords.Z * CHUNK_DIMENSION + z);
 			heightMap[ChunkUtils::PackXZ(x, z)] = height;
 		}
 	}
@@ -192,11 +192,11 @@ ChunkHeightMap WorldGenerator::GenerateHeightMap(ChunkCoords2D coords) const
 ChunkMoistureMap WorldGenerator::GenerateMoistureMap(ChunkCoords2D coords) const
 {
 	ChunkMoistureMap moistureMap;
-	for (uint8_t z = 0; z < 16; z++)
+	for (uint8_t z = 0; z < CHUNK_DIMENSION; z++)
 	{
-		for (uint8_t x = 0; x < 16; x++)
+		for (uint8_t x = 0; x < CHUNK_DIMENSION; x++)
 		{
-			const float moisture = GenerateMoisture(coords.X * 16 + x, coords.Z * 16 + z);
+			const float moisture = GenerateMoisture(coords.X * CHUNK_DIMENSION + x, coords.Z * CHUNK_DIMENSION + z);
 			moistureMap[ChunkUtils::PackXZ(x, z)] = moisture;
 		}
 	}
@@ -206,8 +206,8 @@ ChunkMoistureMap WorldGenerator::GenerateMoistureMap(ChunkCoords2D coords) const
 TerrainFeature WorldGenerator::GenerateTerrainFeature(ChunkCoords2D chunkCoords, LocalBlockCoords2D blockCoords, Biome biome) const
 {
 	const float noise = Noise::PerlinNoise(
-		(blockCoords.X + chunkCoords.X * 16) * TerrainFeaturesConfig.Frequency,
-		(blockCoords.Z + chunkCoords.Z * 16) * TerrainFeaturesConfig.Frequency
+		(blockCoords.X + chunkCoords.X * CHUNK_DIMENSION) * TerrainFeaturesConfig.Frequency,
+		(blockCoords.Z + chunkCoords.Z * CHUNK_DIMENSION) * TerrainFeaturesConfig.Frequency
 	);
 	if (biome == Biome::Forest)
 	{
@@ -226,7 +226,12 @@ void WorldGenerator::BuildTerrainFeature(Chunk& chunk, LocalBlockCoords originBl
 	std::span<RelativeBlockPlacement> blocks = GetFeatureBlocks(feature);
 
 	const ChunkCoords chunkCoords = chunk.GetCoords();
-	const BlockCoords chunkBlockCoordsStart = {chunkCoords.X * 16, chunkCoords.Y * 16, chunkCoords.Z * 16};
+	const BlockCoords chunkBlockCoordsStart = 
+	{
+		chunkCoords.X * CHUNK_DIMENSION,
+		chunkCoords.Y * CHUNK_DIMENSION, 
+		chunkCoords.Z * CHUNK_DIMENSION
+	};
 
 	for (RelativeBlockPlacement block : blocks)
 	{
@@ -255,9 +260,9 @@ void WorldGenerator::BuildTerrainFeatures(Chunk& chunk, const ChunkGenInfo& genI
 {
 	const ChunkCoords chunkCoords = chunk.GetCoords();
 	const ChunkCoords2D chunkCoords2D = static_cast<ChunkCoords2D>(chunkCoords);
-	for (uint8_t z = 0; z < 16; z++)
+	for (uint8_t z = 0; z < CHUNK_DIMENSION; z++)
 	{
-		for (uint8_t x = 0; x < 16; x++)
+		for (uint8_t x = 0; x < CHUNK_DIMENSION; x++)
 		{
 			const float height = genInfo.HeightMap[ChunkUtils::PackXZ(x, z)];
 			const float moisture = genInfo.MoistureMap[ChunkUtils::PackXZ(x, z)];
@@ -368,9 +373,9 @@ BlockType WorldGenerator::GetBlock(int surfaceHeight, int blockHeight, Biome bio
 void WorldGenerator::BuildTerrain(Chunk& chunk, const ChunkGenInfo& genInfo) const
 {
 	const ChunkCoords chunkCoords = chunk.GetCoords();
-	for (uint8_t z = 0; z < 16; z++)
+	for (uint8_t z = 0; z < CHUNK_DIMENSION; z++)
 	{
-		for (uint8_t x = 0; x < 16; x++)
+		for (uint8_t x = 0; x < CHUNK_DIMENSION; x++)
 		{
 			const size_t i = ChunkUtils::PackXZ(x, z);
 			const float height = genInfo.HeightMap[i];
@@ -378,9 +383,9 @@ void WorldGenerator::BuildTerrain(Chunk& chunk, const ChunkGenInfo& genInfo) con
 
 			const int surfaceHeight = BlockHeightFromFloat(height);
 			const Biome biome = GetBiome(height, moisture);
-			for (uint8_t y = 0; y < 16; y++)
+			for (uint8_t y = 0; y < CHUNK_DIMENSION; y++)
 			{
-				const int blockHeight = chunkCoords.Y * 16 + y;
+				const int blockHeight = chunkCoords.Y * CHUNK_DIMENSION + y;
 				const BlockType block = GetBlock(surfaceHeight, blockHeight, biome);
 				chunk.SetBlock(block, x, y, z);
 			}

@@ -83,8 +83,8 @@ static AABB GetSubfrustaAABB(const SubfrustumCorners& corners)
 
 static AABB GetChunkAABB(ChunkCoords coords)
 {
-	const glm::vec3 min{ coords.X * 16, coords.Y * 16, coords.Z * 16 };
-	const glm::vec3 max = min + glm::vec3{ 16.0f, 16.0f, 16.0f };
+	const glm::vec3 min{ coords.X * CHUNK_DIMENSION, coords.Y * CHUNK_DIMENSION, coords.Z * CHUNK_DIMENSION };
+	const glm::vec3 max = min + glm::vec3{ static_cast<float>(CHUNK_DIMENSION) };
 	return AABB{ min, max };
 }
 
@@ -106,22 +106,23 @@ static bool CheckAABBIntersection(AABB a, AABB b)
 
 static bool ChunkInFrustrum(ChunkCoords coords, const std::array<Plane, 6>& frustumPlanes)
 {
+	constexpr float l = static_cast<float>(CHUNK_DIMENSION);
 	const glm::vec3 chunkWorldPos
 	{
-		coords.X * 16,
-		coords.Y * 16,
-		coords.Z * 16
+		coords.X * l,
+		coords.Y * l,
+		coords.Z * l
 	};
 	std::array<glm::vec3, 8> chunkCorners
 	{
 		chunkWorldPos,
-		chunkWorldPos + glm::vec3{16.0f, 0.0f, 0.0f},
-		chunkWorldPos + glm::vec3{0.0f, 16.0f, 0.0f},
-		chunkWorldPos + glm::vec3{0.0f, 0.0f, 16.0f},
-		chunkWorldPos + glm::vec3{16.0f, 16.0f, 0.0f},
-		chunkWorldPos + glm::vec3{0.0f, 16.0f, 16.0f},
-		chunkWorldPos + glm::vec3{16.0f, 0.0f, 16.0f},
-		chunkWorldPos + glm::vec3{16.0f, 16.0f, 16.0f}
+		chunkWorldPos + glm::vec3{l, 0.0f, 0.0f},
+		chunkWorldPos + glm::vec3{0.0f, l, 0.0f},
+		chunkWorldPos + glm::vec3{0.0f, 0.0f, l},
+		chunkWorldPos + glm::vec3{l, l, 0.0f},
+		chunkWorldPos + glm::vec3{0.0f, l, l},
+		chunkWorldPos + glm::vec3{l, 0.0f, l},
+		chunkWorldPos + glm::vec3{l, l, l}
 	};
 
 	for (const Plane& plane : frustumPlanes)
@@ -320,6 +321,11 @@ void Renderer::RenderGBufferPass(const std::vector<const Chunk*>& chunkList) con
 	m_ChunkRenderer.RenderGBuffer(chunkList);
 }
 
+//uniform sampler2D u_PositionSampler;
+//uniform sampler2D u_NormalSampler;
+//uniform sampler2D u_AlbedoSampler;
+//uniform sampler2DArray u_ShadowMap;
+
 void Renderer::RenderLightingPass(const World& world, const Camera& camera) const
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -334,6 +340,11 @@ void Renderer::RenderLightingPass(const World& world, const Camera& camera) cons
 	}
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, m_ShadowFramebuffer.GetTextureAttachment(0));
+
+	m_DeferredLightingShader.SetUniform(Shader::UNIFORM_POSITION_SAMPLER, 0);
+	m_DeferredLightingShader.SetUniform(Shader::UNIFORM_NORMAL_SAMPLER, 1);
+	m_DeferredLightingShader.SetUniform(Shader::UNIFORM_ALBEDO_SAMPLER, 2);
+	m_DeferredLightingShader.SetUniform(Shader::UNIFORM_SHADOW_MAP, 3);
 
 	const glm::vec3 lightDir = static_cast<glm::vec3>(world.GetLightDir());
 	const glm::vec3 lightDirViewSpace = glm::normalize(camera.GetViewMatrix() * glm::vec4{ lightDir, 0.0 });

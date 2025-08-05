@@ -3,7 +3,6 @@
 class Window;
 class Camera;
 class World;
-struct TransformComponent;
 
 class UIOverlay
 {

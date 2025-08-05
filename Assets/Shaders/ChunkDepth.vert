@@ -1,4 +1,4 @@
-#version 460 core
+#version 330 core
 
 layout (location = 0) in uint a_Data;
 
@@ -19,14 +19,14 @@ void main()
 {
 	ivec3 chunkOffset = ivec3
 	(
-		a_Data & 0x1Fu,
-		(a_Data >> 5u) & 0x1Fu, 
-		(a_Data >> 10u) & 0x1Fu
+		a_Data & 0x3Fu,
+		(a_Data >> 6u) & 0x3Fu, 
+		(a_Data >> 12u) & 0x3Fu
 	);
 
-	uint textureIndex = (a_Data >> 15u) & 0xFFu;
-	float u = (a_Data >> 23u) & 0x1u;
-	float v = (a_Data >> 24u) & 0x1u;
+	uint textureIndex = (a_Data >> 18u) & 0xFFu;
+	float u = (a_Data >> 26u) & 0x1u;
+	float v = (a_Data >> 27u) & 0x1u;
 
 	v_TexCoords = vec2(
 		((textureIndex & 0xFu) + u) / 16.0,

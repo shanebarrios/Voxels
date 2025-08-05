@@ -40,7 +40,7 @@ Camera::Camera(const PlayerView& playerView) :
 void Camera::InitMatrices()
 {
     constexpr float nearPlane = 0.1f;
-    constexpr float farPlane = 27.8f * (Config::ChunkRenderDistance + 1);
+    constexpr float farPlane = 27.8f * (Config::ChunkRenderDistance * 2 + 1);
 
     constexpr float lambda = 0.8f;
 

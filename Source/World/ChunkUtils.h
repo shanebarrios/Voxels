@@ -31,7 +31,7 @@ namespace ChunkUtils
 		{
 			neighbors[i++] = { chunkCoords.X - 1, chunkCoords.Y, chunkCoords.Z };
 		}
-		if (blockX == 15)
+		if (blockX == CHUNK_DIMENSION-1)
 		{
 			neighbors[i++] = { chunkCoords.X + 1, chunkCoords.Y, chunkCoords.Z };
 		}
@@ -39,7 +39,7 @@ namespace ChunkUtils
 		{
 			neighbors[i++] = { chunkCoords.X, chunkCoords.Y - 1, chunkCoords.Z };
 		}
-		if (blockY == 15)
+		if (blockY == CHUNK_DIMENSION-1)
 		{
 			neighbors[i++] = { chunkCoords.X, chunkCoords.Y + 1, chunkCoords.Z };
 		}
@@ -47,7 +47,7 @@ namespace ChunkUtils
 		{
 			neighbors[i++] = { chunkCoords.X, chunkCoords.Y, chunkCoords.Z - 1 };
 		}
-		if (blockZ == 15)
+		if (blockZ == CHUNK_DIMENSION-1)
 		{
 			neighbors[i++] = { chunkCoords.X, chunkCoords.Y, chunkCoords.Z + 1 };
 		}
@@ -62,34 +62,36 @@ namespace ChunkUtils
 	inline constexpr bool IsLocal(BlockCoords blockCoords)
 	{
 		return 
-			blockCoords.X >= 0 && blockCoords.X < 16 && 
-			blockCoords.Y >= 0 && blockCoords.Y < 16 && 
-			blockCoords.Z >= 0 && blockCoords.Z < 16;
+			blockCoords.X >= 0 && blockCoords.X < CHUNK_DIMENSION && 
+			blockCoords.Y >= 0 && blockCoords.Y < CHUNK_DIMENSION && 
+			blockCoords.Z >= 0 && blockCoords.Z < CHUNK_DIMENSION;
 	}
 
 	inline int BlockToChunkSpace(int blockIndex)
 	{
-		return blockIndex >= 0 ? blockIndex / 16 : (blockIndex - 15) / 16;
+		return blockIndex >= 0 ? 
+			blockIndex / CHUNK_DIMENSION : 
+			(blockIndex - CHUNK_DIMENSION + 1) / CHUNK_DIMENSION;
 	}
 
 	inline uint8_t BlockToLocalSpace(int blockIndex)
 	{
-		return static_cast<uint8_t>(blockIndex & 0xF);
+		return static_cast<uint8_t>(blockIndex & CHUNK_COORD_MASK);
 	}
 
 	inline constexpr uint8_t ExtractX(size_t index)
 	{
-		return index & 0xFu;
+		return index & CHUNK_COORD_MASK;
 	}
 
 	inline constexpr uint8_t ExtractZ(size_t index)
 	{
-		return (index >> 4) & 0xFu;
+		return (index >> CHUNK_COORD_BIT_COUNT) & CHUNK_COORD_MASK;
 	}
 
 	inline constexpr uint8_t ExtractY(size_t index)
 	{
-		return (index >> 8) & 0xFu;
+		return (index >> CHUNK_COORD_BIT_COUNT * 2) & CHUNK_COORD_MASK;
 	}
 
 	inline constexpr LocalBlockCoords ExtractLocalBlockCoords(size_t index)
@@ -104,11 +106,16 @@ namespace ChunkUtils
 
 	inline constexpr size_t PackXYZ(uint8_t x, uint8_t y, uint8_t z)
 	{
-		return static_cast<size_t>(x) | (static_cast<size_t>(z) << 4u) | (static_cast<size_t>(y) << 8u);
+		return 
+			static_cast<size_t>(x) | 
+			(static_cast<size_t>(z) << CHUNK_COORD_BIT_COUNT) | 
+			(static_cast<size_t>(y) << CHUNK_COORD_BIT_COUNT * 2);
 	}
 
 	inline constexpr size_t PackXZ(uint8_t x, uint8_t z)
 	{
-		return static_cast<size_t>(x) | static_cast<size_t>(z) << 4u;
+		return 
+			static_cast<size_t>(x) | 
+			static_cast<size_t>(z) << CHUNK_COORD_BIT_COUNT;
 	}
 }
