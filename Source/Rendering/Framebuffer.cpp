@@ -1,7 +1,7 @@
 #include "Framebuffer.h"
 #include <glad/glad.h>
-#include "Utils/Logger.h"
-#include "Utils/Common.h"
+#include "Core/Logger.h"
+#include "Core/Common.h"
 
 static bool IsColorAttachment(FramebufferAttachmentFormat format)
 {

@@ -1,6 +1,6 @@
 #include "Window.h"
 
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 #include <array>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"

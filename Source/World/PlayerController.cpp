@@ -9,8 +9,8 @@
 #include "ChunkUtils.h"
 #include "Physics/Raycast.h"
 #include "Physics/PhysicsUtils.h"
-#include "Input.h"
-#include "Utils/Logger.h"
+#include "Core/Input.h"
+#include "Core/Logger.h"
 
 PlayerController::PlayerController(Entity player, ECS& ecs, World& world) :
 	m_ECS{ ecs },

@@ -1,10 +1,10 @@
-#include "Application.h"
+#include "Core/Application.h"
 
-// TODO:
-// Batch chunk meshes
-// Editor with ImGui
-// Better terrain generation
-// Fix shadow shimmering
+// TODO: Add proper day/night cycle
+// TODO: Finish editor with ImGui
+// TODO: Add anti-aliasing
+// TODO: Better terrain generation
+// TODO: Fix shadow shimmering
 
 int main()
 {

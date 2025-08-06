@@ -1,5 +1,5 @@
 #pragma once
-#include "Utils/Common.h"
+#include "Core/Common.h"
 #include <cmath>
 #include <functional>
 #include <cstdint>

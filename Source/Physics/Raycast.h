@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 #include "World/Block.h"
 #include <optional>
 #include <functional>

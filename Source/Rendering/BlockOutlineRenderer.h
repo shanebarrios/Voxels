@@ -3,7 +3,7 @@
 #include "Shader.h"
 #include "Buffer.h"
 #include "VertexArray.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 
 class World;
 class Camera;

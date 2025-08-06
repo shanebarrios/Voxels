@@ -3,13 +3,12 @@
 #include "ECS/EntityFactory.h"
 #include "ECS/Components.h"
 #include "Physics/PhysicsSystem.h"
-#include "Window.h"
 #include "Math/MathUtils.h"
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 #include "ChunkUtils.h"
 #include "Rendering/Camera.h"
-#include "Utils/DebugState.h"
-#include "Utils/Config.h"
+#include "Core/DebugState.h"
+#include "Core/Config.h"
 
 // Through profiling, realized that rebuilding meshes was a huge bottleneck
 // Realized that 4x mesh rebuilds for every chunk load

@@ -2,10 +2,10 @@
 #include <glad/glad.h>
 #include <ranges>
 #include "World/Chunk.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 #include "Camera.h"
 #include "Buffer.h"
-#include "Utils/DebugState.h"
+#include "Core/DebugState.h"
 
 extern DebugState g_DebugState;
 

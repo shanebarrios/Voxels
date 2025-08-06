@@ -4,8 +4,8 @@
 #include <numbers>
 #include <array>
 #include <optional>
-#include "Utils/Coordinates.h"
-#include "Utils/Common.h"
+#include "World/Coordinates.h"
+#include "Core/Common.h"
 
 namespace ChunkUtils
 {

@@ -6,7 +6,7 @@
 #include "Window.h"
 #include "World/World.h"
 #include "Rendering/Camera.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 #include "ECS/Components.h"
 #include "ECS/ECS.h"
 #include "World/Block.h"

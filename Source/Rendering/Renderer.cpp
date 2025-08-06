@@ -2,7 +2,7 @@
 
 #include "Camera.h"
 #include "World/World.h"
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 #include "Math/MathUtils.h"
 #include <array>
 #include <limits>
@@ -330,7 +330,9 @@ void Renderer::RenderLightingPass(const World& world, const Camera& camera) cons
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, m_WindowWidth, m_WindowHeight);
+	glClearColor(0.53f, 0.81f, 0.92f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	m_DeferredLightingShader.Bind();
 	for (size_t i = 0; i < 3; i++)

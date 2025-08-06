@@ -3,9 +3,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <cassert>
-#include "Input.h"
+#include "Core/Input.h"
 #include "ECS/Components.h"
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 
 static float HorizontalToVerticalFov(float horizontalFov, float aspectRatio)
 {

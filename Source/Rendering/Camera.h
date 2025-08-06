@@ -2,9 +2,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 #include "World/World.h"
-#include "Utils/Config.h"
+#include "Core/Config.h"
 
 using Entity = uint32_t;
 

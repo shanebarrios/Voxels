@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Utils/Common.h"
+#include "Core/Common.h"
 #include "Block.h"
-#include "Utils/Common.h"
 #include "ChunkMesh.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 
 class World;
 

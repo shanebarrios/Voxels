@@ -1,5 +1,5 @@
 #include "Noise.h"
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 #include "MathUtils.h"
 
 #include <array>

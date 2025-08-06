@@ -5,7 +5,7 @@
 #include "World/World.h"
 #include "Rendering/Camera.h"
 #include "Rendering/Renderer.h"
-#include "Utils/Config.h"
+#include "Core/Config.h"
 #include "Input.h"
 
 class Application

@@ -74,8 +74,7 @@ void main()
 	// This is definitely not how you're supposed to do fill color
 	if (albedo == vec3(0.0))
 	{
-		FragColor = vec4(0.0f, 0.6f, 1.0f, 1.0f);
-		return;
+		discard;
 	};
 
 	vec3 ambient = k_AmbientFactor * albedo * mix(0.4, 1.0, occlusion);

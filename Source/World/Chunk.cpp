@@ -3,7 +3,7 @@
 #include "Math/Noise.h"
 #include <random>
 #include <cassert>
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 
 Chunk::Chunk() :
 	Chunk{ ChunkCoords {} }

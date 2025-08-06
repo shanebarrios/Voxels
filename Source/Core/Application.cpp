@@ -1,8 +1,8 @@
 #include "Application.h"
-#include "Utils/Config.h"
-#include "Utils/Logger.h"
-#include "Utils/DebugState.h"
-#include "Input.h"
+#include "Core/Config.h"
+#include "Core/Logger.h"
+#include "Core/DebugState.h"
+#include "Core/Input.h"
 
 DebugState g_DebugState{};
 

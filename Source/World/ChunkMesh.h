@@ -5,7 +5,7 @@
 #include "Rendering/VertexArray.h"
 #include "Rendering/Buffer.h"
 #include "Block.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 
 class Chunk;
 class World;

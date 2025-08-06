@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 #include <unordered_map>
 #include <array>
 #include <memory>

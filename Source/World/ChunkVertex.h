@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include "Block.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 
 class BufferLayout;
 

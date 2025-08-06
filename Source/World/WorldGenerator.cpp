@@ -3,7 +3,7 @@
 #include "ChunkUtils.h"
 #include <span>
 #include <cassert>
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 #include "World.h"
 
 // Prob should move this to separate config file, and pass in somehow

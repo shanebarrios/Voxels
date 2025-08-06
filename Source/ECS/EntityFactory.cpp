@@ -2,7 +2,7 @@
 
 #include "ECS.h"
 #include "Components.h"
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 
 Entity EntityFactory::CreatePlayer(ECS& ecs, const WorldCoords& coords)
 {

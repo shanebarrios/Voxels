@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Utils/Coordinates.h"
+#include "World/Coordinates.h"
 
 struct TransformComponent
 {

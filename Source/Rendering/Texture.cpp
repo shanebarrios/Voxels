@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #include <glad/glad.h>
 #include <cassert>
-#include "Utils/Logger.h"
+#include "Core/Logger.h"
 
 static GLenum TextureInternalFormatToInternalGL(TextureInternalFormat format)
 {
