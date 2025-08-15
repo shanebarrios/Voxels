@@ -26,7 +26,38 @@ A voxel engine built from the ground up using C++ and OpenGL.
 - UI Overlay
   - Minimal configurable settings using ImGui 
 
- # Screenshots 
- ![Screenshot 1](Screenshots/Screenshot1.png)
- ![Screenshot 2](Screenshots/Screenshot2.png)
- ![Screenshot 3](Screenshots/Screenshot3.png)
+## Screenshots 
+![Screenshot 1](Screenshots/Screenshot1.png)
+![Screenshot 2](Screenshots/Screenshot2.png)
+![Screenshot 3](Screenshots/Screenshot3.png)
+
+## Controls
+- WASD: Move
+- Space: Jump/ascend
+- Ctrl: Crouch/descend
+- Left click: Break block
+- Right click: Place block
+- Shift: Sprint
+- Esc: Toggle debug overlay
+
+## Building
+
+### Prerequisites
+
+You will need CMake, a C++20 compatible compiler, and a system that supports the OpenGL 3.3 core profile.
+The application has been tested on Windows with MSVC and GCC. With Clang, the logging system is currently broken. A fix is on the way for that.
+
+### Setup
+
+First, clone the repository:
+```
+git clone --recursive https://github.com/shanebarrios/Voxels.git
+cd Voxels
+```
+Make sure you clone recursively, as there are submodules within the project.
+Then run
+```
+cmake -Bbuild -S. -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+```
+It is HIGHLY recommended to build in release mode, as the debug mode is (quite literally) unplayable. 
