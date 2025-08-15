@@ -60,4 +60,6 @@ Then run
 cmake -Bbuild -S. -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 ```
-It is HIGHLY recommended to build in release mode, as the debug mode is (quite literally) unplayable. 
+It is HIGHLY recommended to build in release mode, as the debug mode is (quite literally) unplayable.
+
+Also, you may want to take a look at the configuration options set in `Source/Core/Config.h`. In particular, the resolution may need to be tweaked to fit your screen, since it is hard coded. In the future, the optimal resolution will be determined automatically.
