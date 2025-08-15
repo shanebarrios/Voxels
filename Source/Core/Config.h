@@ -5,7 +5,7 @@ namespace Config
 	inline constexpr int WindowWidth = 2560;
 	inline constexpr int WindowHeight = 1440;
 	inline constexpr const char* WindowTitle = "Voxels";
-	inline constexpr bool EnableFullscreen = false;
+	inline constexpr bool EnableFullscreen = true;
 	inline constexpr bool EnableVSync = false;
 	inline constexpr int ChunkLoadDistance = 8;
 	inline constexpr int ChunkRenderDistance = 8;

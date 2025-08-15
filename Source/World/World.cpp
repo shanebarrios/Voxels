@@ -46,6 +46,7 @@ BlockType World::GetBlock(BlockCoords blockCoords) const
 	{
 		return BlockType::Air;
 	}
+	
 }
 
 Chunk* World::GetChunk(ChunkCoords chunkCoords)

@@ -6,6 +6,7 @@ A voxel engine built from the ground up using C++ and OpenGL.
 - World
   - 32x32x32 chunks
   - Infinite, procedurally generated terrain
+  - Breaking and placing blocks
   - Biomes: Ocean, Beach, Forest, Mountains, Snowy Mountains, Plains, Desert
   - Blocks: Grass, Dirt, Stone, Log, Leaves, Sand, Water, Snow
   - Terrain features: Trees
@@ -26,4 +27,6 @@ A voxel engine built from the ground up using C++ and OpenGL.
   - Minimal configurable settings using ImGui 
 
  # Screenshots 
-   
+ ![Screenshot 1](Screenshots/Screenshot1.png)
+ ![Screenshot 2](Screenshots/Screenshot2.png)
+ ![Screenshot 3](Screenshots/Screenshot3.png)
