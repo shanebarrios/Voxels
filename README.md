@@ -3,6 +3,7 @@
 A voxel engine built from the ground up using C++ and OpenGL. 
 
 ## Features
+
 - World
   - 32x32x32 chunks
   - Infinite, procedurally generated terrain
@@ -27,11 +28,13 @@ A voxel engine built from the ground up using C++ and OpenGL.
   - Minimal configurable settings using ImGui 
 
 ## Screenshots 
+
 ![Screenshot 1](Screenshots/Screenshot1.png)
 ![Screenshot 2](Screenshots/Screenshot2.png)
 ![Screenshot 3](Screenshots/Screenshot3.png)
 
 ## Controls
+
 - WASD: Move
 - Space: Jump/ascend
 - Ctrl: Crouch/descend
@@ -63,3 +66,12 @@ cmake --build build --config Release
 It is HIGHLY recommended to build in release mode, as the debug mode is (quite literally) unplayable.
 
 Also, you may want to take a look at the configuration options set in `Source/Core/Config.h`. In particular, the resolution may need to be tweaked to fit your screen, since it is hard coded. In the future, the optimal resolution will be determined automatically.
+
+## Roadmap / Areas for Improvement
+
+- Instead of allocating VAO and VBO per chunk, allocate out of one large buffer, and use `glMultiDrawElementsBaseVertex`
+	- Additionally, use a SSBO to lookup world offset for each chunk, instead of setting uniforms individually each frame
+- Asynchronous chunk loading/unloading and reading and writing to file
+- Implement memory pool for chunk data
+- Greedy meshing
+- Random graphical improvements as I learn more about real-time rendering techniques
