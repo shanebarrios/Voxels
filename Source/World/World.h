@@ -1,85 +1,96 @@
 #pragma once
 
-#include <unordered_map>
-#include <memory>
-#include <glm/glm.hpp>
-#include <array>
-#include "Chunk.h"
-#include <vector>
-#include <queue>
 #include "../ECS/ECS.h"
+#include "../Memory/ChunkAllocator.h"
+#include "Chunk.h"
 #include "PlayerController.h"
 #include "WorldGenerator.h"
+#include <array>
+#include <glm/glm.hpp>
+#include <memory>
+#include <queue>
+#include <unordered_map>
+#include <vector>
 
 class Camera;
 class UIOverlay;
 struct TransformComponent;
 struct LookComponent;
 
-using ChunkMap = std::unordered_map<ChunkCoords, std::unique_ptr<Chunk>>;
+using ChunkMap = std::unordered_map<ChunkCoords, Chunk*>;
 
 struct PlayerView
 {
-	const TransformComponent* Transform;
-	const LookComponent* Look;
+    const TransformComponent* Transform;
+    const LookComponent* Look;
 };
 
 class World
 {
-public:
-	World();
+  public:
+    World();
 
-	void Update(const Camera& camera);
+    void Update(const Camera& camera);
 
-	BlockType GetBlock(BlockCoords blockCoords) const;
-	Chunk* GetChunk(ChunkCoords chunkCoords);
+    BlockType GetBlock(BlockCoords blockCoords) const;
+    Chunk* GetChunk(ChunkCoords chunkCoords);
 
-	bool PlaceBlock(BlockType block, BlockCoords blockCoords);
-	bool BreakBlock(BlockCoords blockCoords);
+    bool PlaceBlock(BlockType block, BlockCoords blockCoords);
+    bool BreakBlock(BlockCoords blockCoords);
 
-	PlayerView GetPlayerView() const;
+    PlayerView GetPlayerView() const;
 
-	void SetPlayerActiveBlock(BlockType block);
+    void SetPlayerActiveBlock(BlockType block);
 
-	void SetPlayerPhysics(bool enabled);
+    void SetPlayerPhysics(bool enabled);
 
-	bool IsPlayerPhysicsEnabled() const;
+    bool IsPlayerPhysicsEnabled() const;
 
-	BlockType GetPlayerActiveBlock() const;
+    BlockType GetPlayerActiveBlock() const;
 
-	void TogglePlayerController() { m_PlayerControllerEnabled = !m_PlayerControllerEnabled; }
-	
-	const std::vector<const Chunk*>& GetChunkRenderList() const { return m_ChunkRenderList; }
+    void TogglePlayerController()
+    {
+        m_PlayerControllerEnabled = !m_PlayerControllerEnabled;
+    }
 
-	const std::vector<const Chunk*>& GetChunkWaterRenderList() const { return m_WaterRenderList; }
+    const std::vector<const Chunk*>& GetChunkRenderList() const
+    {
+        return m_ChunkRenderList;
+    }
 
-	WorldCoords GetLightDir() const { return m_LightDir; }
+    const std::vector<const Chunk*>& GetChunkWaterRenderList() const
+    {
+        return m_WaterRenderList;
+    }
 
-	friend class UIOverlay;
+    WorldCoords GetLightDir() const { return m_LightDir; }
 
-private:
-	void RegisterComponents();
+    friend class UIOverlay;
 
-	void UpdateLoadedChunkQueue();
-	void LoadChunks();
-	void UnloadChunks();
-	void SortChunksByPlayerDistance();
-	void UpdateChunkMeshes();
-	void UpdateChunkRenderList();
+  private:
+    void RegisterComponents();
 
-private:
-	ChunkMap m_LoadedChunks{};
-	ECS m_ECS{};
-	Entity m_Player{};  
+    void UpdateLoadedChunkQueue();
+    void LoadChunks();
+    void UnloadChunks();
+    void SortChunksByPlayerDistance();
+    void UpdateChunkMeshes();
+    void UpdateChunkRenderList();
 
-	std::unique_ptr<PlayerController> m_PlayerController{};
-	std::vector<ChunkCoords> m_ChunkLoadList{};
-	size_t m_ChunkLoadIndex = 0;
-	std::vector<Chunk*> m_ChunksByDistance{};
-	std::vector<const Chunk*> m_ChunkRenderList{};
-	std::vector<const Chunk*> m_WaterRenderList{};
-	WorldGenerator m_WorldGenerator{this};
-	WorldCoords m_LightDir { 0.6f, -0.7f, 0.2f };
+  private:
+    ChunkMap m_LoadedChunks{};
+    ChunkAllocator m_Allocator{};
+    ECS m_ECS{};
+    Entity m_Player{};
 
-	bool m_PlayerControllerEnabled = true;
+    std::unique_ptr<PlayerController> m_PlayerController{};
+    std::vector<ChunkCoords> m_ChunkLoadList{};
+    size_t m_ChunkLoadIndex = 0;
+    std::vector<Chunk*> m_ChunksByDistance{};
+    std::vector<const Chunk*> m_ChunkRenderList{};
+    std::vector<const Chunk*> m_WaterRenderList{};
+    WorldGenerator m_WorldGenerator{this};
+    WorldCoords m_LightDir{0.6f, -0.7f, 0.2f};
+
+    bool m_PlayerControllerEnabled = true;
 };

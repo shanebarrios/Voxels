@@ -1,33 +1,47 @@
 #pragma once
 
+#include "World/Coordinates.h"
 #include <cmath>
 #include <numbers>
-#include "World/Coordinates.h"
 
 namespace MathUtils
 {
-	inline constexpr float Lerp(float begin, float end, float alpha)
-	{
-		return begin + (end - begin) * alpha;
-	}
-
-	inline constexpr float Fade(float t)
-	{
-		return t * t * t * (t * (t * 6 - 15) + 10);
-	}
-
-	inline constexpr float DegsToRadians(float n)
-	{
-		return n * std::numbers::pi_v<float> / 180.0f;
-	}
-
-	inline int ManhattanDistance(ChunkCoords c1, ChunkCoords c2)
-	{
-		return std::abs(c1.X - c2.X) + std::abs(c1.Y - c2.Y) + std::abs(c1.Z - c2.Z);
-	}
-
-	inline int ManhattanDistance(BlockCoords b1, BlockCoords b2)
-	{
-		return std::abs(b1.X - b2.X) + std::abs(b1.Y - b2.Y) + std::abs(b1.Z - b2.Z);
-	}
+template <typename T>
+inline constexpr T Square(T val)
+{
+    return val * val;
 }
+
+template <typename T>
+inline constexpr T Cube(T val)
+{
+    return val * val * val;
+}
+
+inline constexpr float Lerp(float begin, float end, float alpha)
+{
+    return begin + (end - begin) * alpha;
+}
+
+inline constexpr float Fade(float t)
+{
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+inline constexpr float DegsToRadians(float n)
+{
+    return n * std::numbers::pi_v<float> / 180.0f;
+}
+
+inline int ManhattanDistance(ChunkCoords c1, ChunkCoords c2)
+{
+    return std::abs(c1.X - c2.X) + std::abs(c1.Y - c2.Y) +
+           std::abs(c1.Z - c2.Z);
+}
+
+inline int ManhattanDistance(BlockCoords b1, BlockCoords b2)
+{
+    return std::abs(b1.X - b2.X) + std::abs(b1.Y - b2.Y) +
+           std::abs(b1.Z - b2.Z);
+}
+} // namespace MathUtils

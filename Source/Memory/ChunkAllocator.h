@@ -1,25 +1,24 @@
 #pragma once
 
-#include "Block.h"
+#include "PoolAllocator.h"
+
 class Chunk;
 
 class ChunkAllocator
 {
-public:
+  public:
+    ChunkAllocator() = default;
     explicit ChunkAllocator(size_t maxChunks);
-    ~ChunkAllocator();
 
-    ChunkAllocator(const ChunkAllocator&) = delete;
-    ChunkAllocator(ChunkAllocator&&);
-
-    ChunkAllocator& operator=(const ChunkAllocator&) = delete;
-    ChunkAllocator& operator=(ChunkAllocator&&);
+    void Init(size_t maxChunks);
 
     Chunk* AllocChunk();
     void FreeChunk(Chunk* chunk);
 
     void Reset();
-    
-private:
-     
+    void Free();
+
+  private:
+    PoolAllocator m_ChunkPoolAllocator{};
+    PoolAllocator m_BlockDataAllocator{};
 };

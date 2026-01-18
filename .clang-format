@@ -1,0 +1,15 @@
+BasedOnStyle: Microsoft
+
+Language: Cpp
+DerivePointerAlignment: false
+PointerAlignment: Left
+AccessModifierOffset: -2
+AllowShortFunctionsOnASingleLine: Inline 
+AllowShortCaseExpressionOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+ColumnLimit: 80
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+BreakTemplateDeclarations: Yes
