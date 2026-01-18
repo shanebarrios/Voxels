@@ -27,7 +27,7 @@ Chunk* ChunkAllocator::AllocChunk()
 void ChunkAllocator::FreeChunk(Chunk* chunk)
 {
     m_BlockDataAllocator.Dealloc(chunk->GetBlocks());
-    m_ChunkPoolAllocator.Dealloc(chunk);
+    m_ChunkPoolAllocator.Delete<Chunk>(chunk);
 }
 
 void ChunkAllocator::Reset()
