@@ -12,29 +12,29 @@ class World;
 
 class ChunkMesh
 {
-public:
-	ChunkMesh();
+  public:
+    ChunkMesh();
 
-	void Rebuild(const Chunk& chunk, const World& world);
+    void Rebuild(const Chunk& chunk, const World& world);
 
-	size_t NumOpaqueVertices() const { return m_BufferIndex; }
-	size_t NumTransparentVertices() const { return m_TransparentBufferIndex; }
+    size_t NumOpaqueVertices() const { return m_BufferIndex; }
+    size_t NumTransparentVertices() const { return m_TransparentBufferIndex; }
 
-	void BindOpaque() const;
-	void BindTransparent() const;
-	
-private: 
-	void HandleBlock(const Chunk& chunk, const World& world, size_t i);
+    void BindOpaque() const;
+    void BindTransparent() const;
 
-	void AddFace(const Chunk& chunk, const World& world, BlockFace face, BlockType blockType, LocalBlockCoords offset);
-	
-private:
-	size_t m_BufferIndex = 0;
-	size_t m_TransparentBufferIndex = 0;
-	VertexBuffer m_OpaqueVBO{};
-	VertexBuffer m_TransparentVBO{};
-	VertexArray m_OpaqueVAO{};
-	VertexArray m_TransparentVAO{};
-	// No index buffer because vertices take up only 4 bytes
+  private:
+    void HandleBlock(const Chunk& chunk, const World& world, size_t i);
+
+    void AddFace(const Chunk& chunk, const World& world, BlockFace face,
+                 BlockType blockType, LocalBlockCoords offset);
+
+  private:
+    size_t m_BufferIndex = 0;
+    size_t m_TransparentBufferIndex = 0;
+    VertexBuffer m_OpaqueVBO{};
+    VertexBuffer m_TransparentVBO{};
+    VertexArray m_OpaqueVAO{};
+    VertexArray m_TransparentVAO{};
+    // No index buffer because vertices take up only 4 bytes
 };
-

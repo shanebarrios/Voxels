@@ -6,109 +6,113 @@
 template <typename TKey, typename TVal>
 class LRUCache
 {
-public:
-	explicit LRUCache(size_t capacity) : m_Capacity{ capacity } 
-	{
-		assert(capacity > 0);
-	};
+  public:
+    explicit LRUCache(size_t capacity) : m_Capacity{capacity}
+    {
+        assert(capacity > 0);
+    };
 
-	~LRUCache()
-	{
-		Node* cur = m_Head;
-		while (cur)
-		{
-			Node* next = cur->Next;
-			delete cur;
-			cur = next;
-		}
-	}
+    ~LRUCache()
+    {
+        Node* cur = m_Head;
+        while (cur)
+        {
+            Node* next = cur->Next;
+            delete cur;
+            cur = next;
+        }
+    }
 
-	LRUCache(const LRUCache&) = delete;
-	LRUCache& operator=(const LRUCache&) = delete;
-	LRUCache(LRUCache&&) = delete;
-	LRUCache& operator=(LRUCache&&) = delete;
+    LRUCache(const LRUCache&) = delete;
+    LRUCache& operator=(const LRUCache&) = delete;
+    LRUCache(LRUCache&&) = delete;
+    LRUCache& operator=(LRUCache&&) = delete;
 
-	const TVal* Get(const TKey& key) 
-	{
-		if (auto it = m_Cache.find(key); it != m_Cache.end()) 
-		{
-			Node* const node = it->second;
-			MoveToHead(node);
-			return &node->Val;
-		}
-		return nullptr;
-	}
-	
-	template <typename K, typename V>
-	const TVal& Insert(K&& key, V&& val) 
-	{
-		if (auto it = m_Cache.find(key); it != m_Cache.end())
-		{
-			Node* const node = it->second;
-			node->Val = std::forward<V>(val);
-			MoveToHead(node);
-			return node->Val;
-		}
+    const TVal* Get(const TKey& key)
+    {
+        if (auto it = m_Cache.find(key); it != m_Cache.end())
+        {
+            Node* const node = it->second;
+            MoveToHead(node);
+            return &node->Val;
+        }
+        return nullptr;
+    }
 
-		Node* const newNode = new Node{ std::forward<K>(key), std::forward<V>(val), m_Head, nullptr };
-		m_Cache[newNode->Key] = newNode;
+    template <typename K, typename V>
+    const TVal& Insert(K&& key, V&& val)
+    {
+        if (auto it = m_Cache.find(key); it != m_Cache.end())
+        {
+            Node* const node = it->second;
+            node->Val = std::forward<V>(val);
+            MoveToHead(node);
+            return node->Val;
+        }
 
-		if (m_Head == nullptr)
-		{
-			m_Head = newNode;
-			m_Tail = newNode;
-			return newNode->Val;
-		}
+        Node* const newNode = new Node{std::forward<K>(key),
+                                       std::forward<V>(val), m_Head, nullptr};
+        m_Cache[newNode->Key] = newNode;
 
-		m_Head = newNode;
-		m_Head->Next->Prev = m_Head;
-		
-		if (m_Cache.size() > m_Capacity)
-		{
-			EvictTail();
-		}
-		return newNode->Val;
-	}
+        if (m_Head == nullptr)
+        {
+            m_Head = newNode;
+            m_Tail = newNode;
+            return newNode->Val;
+        }
 
-private:
-	struct Node
-	{
-		TKey Key;
-		TVal Val;
-		Node* Next;
-		Node* Prev;
-	};
+        m_Head = newNode;
+        m_Head->Next->Prev = m_Head;
 
-	void MoveToHead(Node* node)
-	{
-		if (node == m_Head) return;
+        if (m_Cache.size() > m_Capacity)
+        {
+            EvictTail();
+        }
+        return newNode->Val;
+    }
 
-		if (node == m_Tail) m_Tail = node->Prev;
+  private:
+    struct Node
+    {
+        TKey Key;
+        TVal Val;
+        Node* Next;
+        Node* Prev;
+    };
 
-		if (node->Next) node->Next->Prev = node->Prev;
+    void MoveToHead(Node* node)
+    {
+        if (node == m_Head)
+            return;
 
-		if (node->Prev) node->Prev->Next = node->Next;
+        if (node == m_Tail)
+            m_Tail = node->Prev;
 
-		node->Next = m_Head;
-		node->Prev = nullptr;
-		m_Head->Prev = node;
-		m_Head = node;
-	}
+        if (node->Next)
+            node->Next->Prev = node->Prev;
 
-	void EvictTail()
-	{
-		auto it = m_Cache.find(m_Tail->Key);
-		m_Cache.erase(it);
-		Node* newTail = m_Tail->Prev;
-		newTail->Next = nullptr;
-		delete m_Tail;
-		m_Tail = newTail;
-	}
+        if (node->Prev)
+            node->Prev->Next = node->Next;
 
-private:
-	size_t m_Capacity;
-	Node* m_Head = nullptr;
-	Node* m_Tail = nullptr;
-	std::unordered_map<TKey, Node*> m_Cache{};
+        node->Next = m_Head;
+        node->Prev = nullptr;
+        m_Head->Prev = node;
+        m_Head = node;
+    }
+
+    void EvictTail()
+    {
+        auto it = m_Cache.find(m_Tail->Key);
+        m_Cache.erase(it);
+        Node* newTail = m_Tail->Prev;
+        newTail->Next = nullptr;
+        delete m_Tail;
+        m_Tail = newTail;
+    }
+
+  private:
+    size_t m_Capacity;
+    Node* m_Head = nullptr;
+    Node* m_Tail = nullptr;
+    std::unordered_map<TKey, Node*> m_Cache{};
 };
-

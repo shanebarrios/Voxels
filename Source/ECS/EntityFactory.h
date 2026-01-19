@@ -10,9 +10,9 @@ class ECS;
 
 namespace EntityFactory
 {
-	Entity CreatePlayer(ECS& ecs, const WorldCoords& coords);
+Entity CreatePlayer(ECS& ecs, const WorldCoords& coords);
 
-	Entity CreateDebugPlayer(ECS& ecs, const WorldCoords& coords);
+Entity CreateDebugPlayer(ECS& ecs, const WorldCoords& coords);
 
-	PhysicsComponent CreatePlayerPhysicsComponent();
-}
+PhysicsComponent CreatePlayerPhysicsComponent();
+} // namespace EntityFactory

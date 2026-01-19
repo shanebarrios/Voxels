@@ -6,61 +6,41 @@
 
 Entity EntityFactory::CreatePlayer(ECS& ecs, const WorldCoords& coords)
 {
-	Entity player = ecs.CreateEntity();
-	ecs.AddComponent<TransformComponent>(player, 
-		{ 
-			.Position = coords, 
-			.Yaw = -90.0f, 
-		});
-	ecs.AddComponent<PhysicsComponent>(player, CreatePlayerPhysicsComponent());
-	ecs.AddComponent<InputComponent>(player,
-		{
-			.MoveX = 0.0f,
-			.MoveZ = 0.0f,
-			.InputFlags = 0
-		});
-	ecs.AddComponent<LookComponent>(player,
-		{
-			.Offset = WorldCoords {0.0f, 1.6f, 0.0f},
-			.Yaw = -90.0f,
-			.Pitch = 0.0f
-		});
-	return player;
+    Entity player = ecs.CreateEntity();
+    ecs.AddComponent<TransformComponent>(player, {
+                                                     .Position = coords,
+                                                     .Yaw = -90.0f,
+                                                 });
+    ecs.AddComponent<PhysicsComponent>(player, CreatePlayerPhysicsComponent());
+    ecs.AddComponent<InputComponent>(
+        player, {.MoveX = 0.0f, .MoveZ = 0.0f, .InputFlags = 0});
+    ecs.AddComponent<LookComponent>(player,
+                                    {.Offset = WorldCoords{0.0f, 1.6f, 0.0f},
+                                     .Yaw = -90.0f,
+                                     .Pitch = 0.0f});
+    return player;
 }
 
 Entity EntityFactory::CreateDebugPlayer(ECS& ecs, const WorldCoords& coords)
 {
-	Entity player = ecs.CreateEntity();
-	ecs.AddComponent<TransformComponent>(player,
-		{
-			.Position = coords,
-			.Yaw = -90.0f
-		});
-	ecs.AddComponent<InputComponent>(player,
-		{
-			.MoveX = 0.0f,
-			.MoveZ = 0.0f,
-			.InputFlags = 0
-		});
-	ecs.AddComponent<LookComponent>(player,
-		{
-			.Offset = WorldCoords {0.0f, 1.6f, 0.0f},
-			.Yaw = -90.0f,
-			.Pitch = 0.0f
-		});
-	return player;
+    Entity player = ecs.CreateEntity();
+    ecs.AddComponent<TransformComponent>(player,
+                                         {.Position = coords, .Yaw = -90.0f});
+    ecs.AddComponent<InputComponent>(
+        player, {.MoveX = 0.0f, .MoveZ = 0.0f, .InputFlags = 0});
+    ecs.AddComponent<LookComponent>(player,
+                                    {.Offset = WorldCoords{0.0f, 1.6f, 0.0f},
+                                     .Yaw = -90.0f,
+                                     .Pitch = 0.0f});
+    return player;
 }
 
 PhysicsComponent EntityFactory::CreatePlayerPhysicsComponent()
 {
-	return
-	{
-		.Velocity = WorldCoords {},
-		.Collider =
-		{
-			.Min = WorldCoords {-0.3f, 0.0f, -0.3f},
-			.Max = WorldCoords {0.3f, 1.8f, 0.3f}
-		},
-		.Airborne = false,
-	};
+    return {
+        .Velocity = WorldCoords{},
+        .Collider = {.Min = WorldCoords{-0.3f, 0.0f, -0.3f},
+                     .Max = WorldCoords{0.3f, 1.8f, 0.3f}},
+        .Airborne = false,
+    };
 }

@@ -8,6 +8,6 @@
 
 int main()
 {
-	Application app{};
-	app.Run();
+    Application app{};
+    app.Run();
 }

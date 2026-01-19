@@ -9,5 +9,5 @@ using Entity = uint32_t;
 
 namespace PhysicsSystem
 {
-	void Update(ECS& ecs, World& world);
+void Update(ECS& ecs, World& world);
 };

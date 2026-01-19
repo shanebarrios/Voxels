@@ -8,8 +8,9 @@
 
 int Window::s_NumWindows = 0;
 
-Window::Window(int width, int height, std::string_view name, bool vsync, bool fullscreen) 
-    : m_Width{ width }, m_Height{ height }
+Window::Window(int width, int height, std::string_view name, bool vsync,
+               bool fullscreen)
+    : m_Width{width}, m_Height{height}
 {
     if (s_NumWindows++ == 0)
     {
@@ -26,7 +27,8 @@ Window::Window(int width, int height, std::string_view name, bool vsync, bool fu
     ToggleCursorVisibility();
     Activate();
 
-    if (!vsync) glfwSwapInterval(0);
+    if (!vsync)
+        glfwSwapInterval(0);
 }
 
 Window::~Window()
@@ -41,7 +43,8 @@ Window::~Window()
     }
 }
 
-Window::Window(Window&& other) noexcept : m_Window{ other.m_Window }, m_Width{ other.m_Width }, m_Height{ other.m_Height }
+Window::Window(Window&& other) noexcept
+    : m_Window{other.m_Window}, m_Width{other.m_Width}, m_Height{other.m_Height}
 {
     other.m_Window = nullptr;
     s_NumWindows++;
@@ -103,6 +106,8 @@ void Window::Shutdown()
 
 void Window::ToggleCursorVisibility()
 {
-    const bool visible = glfwGetInputMode(m_Window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
-    glfwSetInputMode(m_Window, GLFW_CURSOR, visible ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    const bool visible =
+        glfwGetInputMode(m_Window, GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
+    glfwSetInputMode(m_Window, GLFW_CURSOR,
+                     visible ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }

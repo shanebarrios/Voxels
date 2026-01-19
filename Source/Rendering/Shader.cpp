@@ -16,7 +16,7 @@ struct ShaderProgramSource
 
 static std::string ReadFile(std::string_view path)
 {
-    const std::ifstream inf{ path.data() };
+    const std::ifstream inf{path.data()};
     if (!inf)
     {
         LOG_ERROR("Failed to open shader file {}", path);
@@ -52,8 +52,12 @@ static uint32_t CompileShader(const std::string& source, GLenum type)
 static uint32_t LinkSources(const ShaderProgramSource& sources)
 {
     const uint32_t vertId = CompileShader(sources.VertSource, GL_VERTEX_SHADER);
-    const uint32_t fragId = CompileShader(sources.FragSource, GL_FRAGMENT_SHADER);
-    const uint32_t geomId = sources.GeomSource.length() > 0 ? CompileShader(sources.GeomSource, GL_GEOMETRY_SHADER) : 0;
+    const uint32_t fragId =
+        CompileShader(sources.FragSource, GL_FRAGMENT_SHADER);
+    const uint32_t geomId =
+        sources.GeomSource.length() > 0
+            ? CompileShader(sources.GeomSource, GL_GEOMETRY_SHADER)
+            : 0;
 
     const uint32_t programId = glCreateProgram();
     glAttachShader(programId, vertId);
@@ -89,14 +93,17 @@ static uint32_t LinkSources(const ShaderProgramSource& sources)
 
 Shader::Shader(std::string_view vertPath, std::string_view fragPath)
 {
-    const ShaderProgramSource sources = { ReadFile(vertPath), ReadFile(fragPath) };
+    const ShaderProgramSource sources = {ReadFile(vertPath),
+                                         ReadFile(fragPath)};
     m_ID = LinkSources(sources);
     CacheUniformLocations();
 }
 
-Shader::Shader(std::string_view vertPath, std::string_view fragPath, std::string_view geomPath)
+Shader::Shader(std::string_view vertPath, std::string_view fragPath,
+               std::string_view geomPath)
 {
-    const ShaderProgramSource sources = { ReadFile(vertPath), ReadFile(fragPath), ReadFile(geomPath) };
+    const ShaderProgramSource sources = {ReadFile(vertPath), ReadFile(fragPath),
+                                         ReadFile(geomPath)};
     m_ID = LinkSources(sources);
     CacheUniformLocations();
 }
@@ -109,7 +116,7 @@ Shader::~Shader()
     }
 }
 
-Shader::Shader(Shader&& other) noexcept : m_ID{ other.m_ID }
+Shader::Shader(Shader&& other) noexcept : m_ID{other.m_ID}
 {
     other.m_ID = 0;
 }
@@ -129,9 +136,13 @@ Shader& Shader::operator=(Shader&& other) noexcept
     return *this;
 }
 
-void Shader::Bind() const { glUseProgram(m_ID); }
+void Shader::Bind() const
+{
+    glUseProgram(m_ID);
+}
 
-void Shader::BindUniformBlock(uint32_t bindingPoint, std::string_view name) const
+void Shader::BindUniformBlock(uint32_t bindingPoint,
+                              std::string_view name) const
 {
     const uint32_t blockIndex = glGetUniformBlockIndex(m_ID, name.data());
     if (blockIndex == GL_INVALID_INDEX)
@@ -152,13 +163,17 @@ void Shader::CacheUniformLocations()
     m_UniformLocations[UNIFORM_POSITION] = GetUniformLoc("u_Position");
     m_UniformLocations[UNIFORM_TEXTURE_ATLAS] = GetUniformLoc("u_TextureAtlas");
     m_UniformLocations[UNIFORM_SHADOW_MAP] = GetUniformLoc("u_ShadowMap");
-    m_UniformLocations[UNIFORM_SUBFRUSTA_PLANES] = GetUniformLoc("u_SubfrustaPlanes");
-    m_UniformLocations[UNIFORM_POSITION_SAMPLER] = GetUniformLoc("u_PositionSampler");
-    m_UniformLocations[UNIFORM_NORMAL_SAMPLER] = GetUniformLoc("u_NormalSampler");
-    m_UniformLocations[UNIFORM_ALBEDO_SAMPLER] = GetUniformLoc("u_AlbedoSampler");
+    m_UniformLocations[UNIFORM_SUBFRUSTA_PLANES] =
+        GetUniformLoc("u_SubfrustaPlanes");
+    m_UniformLocations[UNIFORM_POSITION_SAMPLER] =
+        GetUniformLoc("u_PositionSampler");
+    m_UniformLocations[UNIFORM_NORMAL_SAMPLER] =
+        GetUniformLoc("u_NormalSampler");
+    m_UniformLocations[UNIFORM_ALBEDO_SAMPLER] =
+        GetUniformLoc("u_AlbedoSampler");
     m_UniformLocations[UNIFORM_NOISE_SAMPLER] = GetUniformLoc("u_NoiseSampler");
     m_UniformLocations[UNIFORM_SAMPLES] = GetUniformLoc("u_Samples");
     m_UniformLocations[UNIFORM_TRANSFORM] = GetUniformLoc("u_Transform");
     m_UniformLocations[UNIFORM_LIGHT_DIR] = GetUniformLoc("u_LightDir");
-	m_UniformLocations[UNIFORM_CASCADE_INDEX] = GetUniformLoc("u_CascadeIndex");
+    m_UniformLocations[UNIFORM_CASCADE_INDEX] = GetUniformLoc("u_CascadeIndex");
 }

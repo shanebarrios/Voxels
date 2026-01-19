@@ -9,15 +9,16 @@
 
 class CrosshairRenderer
 {
-public:
-	CrosshairRenderer(int screenWidth, int screenHeight);
+  public:
+    CrosshairRenderer(int screenWidth, int screenHeight);
 
-	void Render() const;
-private:
-	VertexArray m_VAO{};
-	VertexBuffer m_VBO{};
-	Texture2D m_Texture;
-	Shader m_Shader;
+    void Render() const;
 
-	glm::mat4 m_Transform;
+  private:
+    VertexArray m_VAO{};
+    VertexBuffer m_VBO{};
+    Texture2D m_Texture;
+    Shader m_Shader;
+
+    glm::mat4 m_Transform;
 };

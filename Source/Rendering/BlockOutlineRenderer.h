@@ -10,13 +10,13 @@ class Camera;
 
 class BlockOutlineRenderer
 {
-public:
-	explicit BlockOutlineRenderer(const UniformBuffer& cameraUBO);
+  public:
+    explicit BlockOutlineRenderer(const UniformBuffer& cameraUBO);
 
-	void Render(const World& world, const Camera& camera) const;
+    void Render(const World& world, const Camera& camera) const;
 
-private:
-	Shader m_Shader;
-	VertexBuffer m_VBO{};
-	VertexArray m_VAO{};
+  private:
+    Shader m_Shader;
+    VertexBuffer m_VBO{};
+    VertexArray m_VAO{};
 };

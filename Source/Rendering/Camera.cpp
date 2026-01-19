@@ -9,7 +9,7 @@
 
 static float HorizontalToVerticalFov(float horizontalFov, float aspectRatio)
 {
-	return 2.0f * glm::atan(glm::tan(horizontalFov / 2.0f) / aspectRatio);
+    return 2.0f * glm::atan(glm::tan(horizontalFov / 2.0f) / aspectRatio);
 }
 
 enum FrustumCorners
@@ -29,10 +29,11 @@ Camera::Camera()
     InitMatrices();
 }
 
-Camera::Camera(const PlayerView& playerView) :
-    m_PlayerView{playerView},
-    m_CurTickPosition {playerView.Transform->Position + playerView.Look->Offset},
-    m_LastTickPosition {m_CurTickPosition}
+Camera::Camera(const PlayerView& playerView)
+    : m_PlayerView{playerView},
+      m_CurTickPosition{playerView.Transform->Position +
+                        playerView.Look->Offset},
+      m_LastTickPosition{m_CurTickPosition}
 {
     InitMatrices();
 }
@@ -44,37 +45,46 @@ void Camera::InitMatrices()
 
     constexpr float lambda = 0.8f;
 
-	const float fov = HorizontalToVerticalFov(glm::radians(m_Fov), m_AspectRatio);
+    const float fov =
+        HorizontalToVerticalFov(glm::radians(m_Fov), m_AspectRatio);
 
     m_SubfrustaPlaneDepths[0] = nearPlane;
     m_SubfrustaPlaneDepths[NUM_CASCADES] = farPlane;
     for (size_t i = 1; i < NUM_CASCADES; i++)
     {
         // Thanks Nvidia (I have no idea what black magic this is)
-        const float planeDepth = lambda * nearPlane * std::powf(farPlane / nearPlane, static_cast<float>(i) / NUM_CASCADES)
-            + (1 - lambda) * (nearPlane + (static_cast<float>(i) / NUM_CASCADES) * (farPlane - nearPlane));
+        const float planeDepth =
+            lambda * nearPlane *
+                std::powf(farPlane / nearPlane,
+                          static_cast<float>(i) / NUM_CASCADES) +
+            (1 - lambda) * (nearPlane + (static_cast<float>(i) / NUM_CASCADES) *
+                                            (farPlane - nearPlane));
         m_SubfrustaPlaneDepths[i] = planeDepth;
         LOG_INFO("{}", planeDepth);
     }
     for (size_t i = 0; i < NUM_CASCADES; i++)
     {
-        m_SubfrustaProjectionMatrices[i] = glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[i], m_SubfrustaPlaneDepths[i + 1]);
+        m_SubfrustaProjectionMatrices[i] =
+            glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[i],
+                             m_SubfrustaPlaneDepths[i + 1]);
     }
 
     m_Projection = glm::perspective(fov, m_AspectRatio, nearPlane, farPlane);
-    m_View = glm::lookAt(m_Pos, m_Pos + m_Direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
+    m_View =
+        glm::lookAt(m_Pos, m_Pos + m_Direction, glm::vec3{0.0f, 1.0f, 0.0f});
 }
 
 void Camera::AttachView(const PlayerView& playerView)
 {
     m_PlayerView = playerView;
-    m_CurTickPosition = playerView.Transform->Position + playerView.Look->Offset;
+    m_CurTickPosition =
+        playerView.Transform->Position + playerView.Look->Offset;
     m_LastTickPosition = m_CurTickPosition;
 }
 
 void Camera::ToggleControls()
 {
-	m_ControlsEnabled = !m_ControlsEnabled;
+    m_ControlsEnabled = !m_ControlsEnabled;
     if (m_ControlsEnabled)
     {
         m_First = true;
@@ -84,22 +94,27 @@ void Camera::ToggleControls()
 void Camera::SetFOVDegreesHorizontal(float degrees)
 {
     m_Fov = degrees;
-	const float fov = HorizontalToVerticalFov(glm::radians(m_Fov), m_AspectRatio);
-    m_Projection = glm::perspective(
-        fov, m_AspectRatio, m_SubfrustaPlaneDepths[0], m_SubfrustaPlaneDepths[NUM_CASCADES]
-    );
+    const float fov =
+        HorizontalToVerticalFov(glm::radians(m_Fov), m_AspectRatio);
+    m_Projection =
+        glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[0],
+                         m_SubfrustaPlaneDepths[NUM_CASCADES]);
     for (size_t i = 0; i < NUM_CASCADES; i++)
     {
-        m_SubfrustaProjectionMatrices[i] = glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[i], m_SubfrustaPlaneDepths[i + 1]);
+        m_SubfrustaProjectionMatrices[i] =
+            glm::perspective(fov, m_AspectRatio, m_SubfrustaPlaneDepths[i],
+                             m_SubfrustaPlaneDepths[i + 1]);
     }
 }
 
 void Camera::Update(float alpha)
-{ 
-	if (m_ControlsEnabled)
+{
+    if (m_ControlsEnabled)
         UpdateOrientation();
-    m_Pos = static_cast<glm::vec3>(m_LastTickPosition * (1 - alpha) + m_CurTickPosition * alpha);
-    m_View = glm::lookAt(m_Pos, m_Pos + m_Direction, glm::vec3{ 0.0f, 1.0f, 0.0f });
+    m_Pos = static_cast<glm::vec3>(m_LastTickPosition * (1 - alpha) +
+                                   m_CurTickPosition * alpha);
+    m_View =
+        glm::lookAt(m_Pos, m_Pos + m_Direction, glm::vec3{0.0f, 1.0f, 0.0f});
 }
 
 void Camera::GetFrustumPlanes(std::array<Plane, 6>& planes) const
@@ -112,42 +127,31 @@ void Camera::GetFrustumPlanes(std::array<Plane, 6>& planes) const
     const glm::vec3 backN = -m_Direction;
 
     const glm::vec3 leftN = glm::normalize(
-        glm::cross(
-            corners[FAR_BOTTOM_LEFT] - corners[NEAR_BOTTOM_LEFT],
-            corners[NEAR_TOP_LEFT] - corners[NEAR_BOTTOM_LEFT]
-        )
-    );
+        glm::cross(corners[FAR_BOTTOM_LEFT] - corners[NEAR_BOTTOM_LEFT],
+                   corners[NEAR_TOP_LEFT] - corners[NEAR_BOTTOM_LEFT]));
 
     const glm::vec3 rightN = glm::normalize(
-        glm::cross(
-            corners[NEAR_TOP_RIGHT] - corners[NEAR_BOTTOM_RIGHT], 
-            corners[FAR_BOTTOM_RIGHT] - corners[NEAR_BOTTOM_RIGHT]
-        )
-    );
+        glm::cross(corners[NEAR_TOP_RIGHT] - corners[NEAR_BOTTOM_RIGHT],
+                   corners[FAR_BOTTOM_RIGHT] - corners[NEAR_BOTTOM_RIGHT]));
 
     const glm::vec3 upN = glm::normalize(
-        glm::cross(
-            corners[FAR_TOP_LEFT] - corners[NEAR_TOP_LEFT], 
-            corners[NEAR_TOP_RIGHT] - corners[NEAR_TOP_LEFT]
-        )
-    );
+        glm::cross(corners[FAR_TOP_LEFT] - corners[NEAR_TOP_LEFT],
+                   corners[NEAR_TOP_RIGHT] - corners[NEAR_TOP_LEFT]));
 
     const glm::vec3 downN = glm::normalize(
-        glm::cross(
-            corners[NEAR_BOTTOM_RIGHT] - corners[NEAR_BOTTOM_LEFT], 
-            corners[FAR_BOTTOM_LEFT] - corners[NEAR_BOTTOM_LEFT]
-        )
-    );
+        glm::cross(corners[NEAR_BOTTOM_RIGHT] - corners[NEAR_BOTTOM_LEFT],
+                   corners[FAR_BOTTOM_LEFT] - corners[NEAR_BOTTOM_LEFT]));
 
-    planes[0] = Plane{ frontN, corners[NEAR_BOTTOM_LEFT]};
-    planes[1] = Plane{ backN, corners[FAR_BOTTOM_LEFT]};
-    planes[2] = Plane{ leftN, corners[NEAR_BOTTOM_LEFT]};
-    planes[3] = Plane{ rightN, corners[NEAR_BOTTOM_RIGHT]};
-    planes[4] = Plane{ upN, corners[NEAR_TOP_LEFT]};
-    planes[5] = Plane{ downN, corners[NEAR_BOTTOM_LEFT]};
+    planes[0] = Plane{frontN, corners[NEAR_BOTTOM_LEFT]};
+    planes[1] = Plane{backN, corners[FAR_BOTTOM_LEFT]};
+    planes[2] = Plane{leftN, corners[NEAR_BOTTOM_LEFT]};
+    planes[3] = Plane{rightN, corners[NEAR_BOTTOM_RIGHT]};
+    planes[4] = Plane{upN, corners[NEAR_TOP_LEFT]};
+    planes[5] = Plane{downN, corners[NEAR_BOTTOM_LEFT]};
 }
 
-void Camera::GetFrustumCornersWorldSpace(std::array<glm::vec3, 8>& corners) const
+void Camera::GetFrustumCornersWorldSpace(
+    std::array<glm::vec3, 8>& corners) const
 {
     const glm::mat4 inverse = glm::inverse(m_Projection * m_View);
     int i = 0;
@@ -157,16 +161,21 @@ void Camera::GetFrustumCornersWorldSpace(std::array<glm::vec3, 8>& corners) cons
         {
             for (int x = -1; x <= 1; x += 2)
             {
-                const glm::vec4 res = inverse * glm::vec4{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f };
-                corners[i++] = glm::vec3{ res / res.w };
+                const glm::vec4 res =
+                    inverse * glm::vec4{static_cast<float>(x),
+                                        static_cast<float>(y),
+                                        static_cast<float>(z), 1.0f};
+                corners[i++] = glm::vec3{res / res.w};
             }
         }
     }
 }
 
-void Camera::GetSubfrustumCornersWorldSpace(std::array<glm::vec3, 8>& corners, size_t index) const
+void Camera::GetSubfrustumCornersWorldSpace(std::array<glm::vec3, 8>& corners,
+                                            size_t index) const
 {
-    const glm::mat4 inverse = glm::inverse(m_SubfrustaProjectionMatrices[index] * m_View);
+    const glm::mat4 inverse =
+        glm::inverse(m_SubfrustaProjectionMatrices[index] * m_View);
     int i = 0;
     for (int z = -1; z <= 1; z += 2)
     {
@@ -174,8 +183,11 @@ void Camera::GetSubfrustumCornersWorldSpace(std::array<glm::vec3, 8>& corners, s
         {
             for (int x = -1; x <= 1; x += 2)
             {
-                const glm::vec4 res = inverse * glm::vec4{ static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0f };
-                corners[i++] = glm::vec3{ res / res.w };
+                const glm::vec4 res =
+                    inverse * glm::vec4{static_cast<float>(x),
+                                        static_cast<float>(y),
+                                        static_cast<float>(z), 1.0f};
+                corners[i++] = glm::vec3{res / res.w};
             }
         }
     }
@@ -184,7 +196,8 @@ void Camera::GetSubfrustumCornersWorldSpace(std::array<glm::vec3, 8>& corners, s
 void Camera::Tick()
 {
     m_LastTickPosition = m_CurTickPosition;
-    m_CurTickPosition = m_PlayerView.Transform->Position + m_PlayerView.Look->Offset;
+    m_CurTickPosition =
+        m_PlayerView.Transform->Position + m_PlayerView.Look->Offset;
 }
 
 void Camera::UpdateOrientation()

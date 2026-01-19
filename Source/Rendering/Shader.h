@@ -11,7 +11,7 @@ class UniformBuffer;
 
 class Shader
 {
-public:
+  public:
     enum ShaderUniform : uint8_t
     {
         UNIFORM_POSITION,
@@ -30,7 +30,8 @@ public:
     };
 
     Shader(std::string_view vertPath, std::string_view fragPath);
-    Shader(std::string_view vertPath, std::string_view fragPath, std::string_view geomPath);
+    Shader(std::string_view vertPath, std::string_view fragPath,
+           std::string_view geomPath);
     ~Shader();
 
     Shader(const Shader&) = delete;
@@ -80,7 +81,8 @@ public:
 
     void SetUniform(ShaderUniform uniform, const glm::mat4& mat) const
     {
-        glUniformMatrix4fv(m_UniformLocations[uniform], 1, GL_FALSE, glm::value_ptr(mat));
+        glUniformMatrix4fv(m_UniformLocations[uniform], 1, GL_FALSE,
+                           glm::value_ptr(mat));
     }
 
     void SetUniform(ShaderUniform uniform, const glm::ivec2& val) const
@@ -103,7 +105,8 @@ public:
         glUniform4i(m_UniformLocations[uniform], x, y, z, w);
     }
 
-    void SetUniform(ShaderUniform uniform, float x, float y, float z, float w) const
+    void SetUniform(ShaderUniform uniform, float x, float y, float z,
+                    float w) const
     {
         glUniform4f(m_UniformLocations[uniform], x, y, z, w);
     }
@@ -113,21 +116,19 @@ public:
         glUniform1fv(m_UniformLocations[uniform], count, vs);
     }
 
-    void SetUniform(ShaderUniform uniform, const glm::vec3* vs, size_t count) const
+    void SetUniform(ShaderUniform uniform, const glm::vec3* vs,
+                    size_t count) const
     {
         glUniform3fv(m_UniformLocations[uniform], count, glm::value_ptr(vs[0]));
     }
 
-private:
+  private:
     int GetUniformLoc(std::string_view name) const;
-    
+
     void CacheUniformLocations();
 
-private:
+  private:
     uint32_t m_ID{};
 
     std::array<int, UNIFORM_COUNT> m_UniformLocations{};
 };
-
-
-

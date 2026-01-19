@@ -6,27 +6,23 @@ class World;
 
 class UIOverlay
 {
-public:
-	UIOverlay() {};
-	
-	void Init(
-		Window* window, 
-		Camera* camera, 
-		World* world
-	);
+  public:
+    UIOverlay() {};
 
-	void Shutdown();
+    void Init(Window* window, Camera* camera, World* world);
 
-	void BeginRender();
-	void EndRender();
+    void Shutdown();
 
-	void ToggleVisibility() { m_Enabled = !m_Enabled; }
-	bool IsVisible() const { return m_Enabled; }
-private:
-	Window* m_Window = nullptr;
-	Camera* m_Camera = nullptr;
-	World* m_World = nullptr;
+    void BeginRender();
+    void EndRender();
 
-	bool m_Enabled = false;
+    void ToggleVisibility() { m_Enabled = !m_Enabled; }
+    bool IsVisible() const { return m_Enabled; }
 
+  private:
+    Window* m_Window = nullptr;
+    Camera* m_Camera = nullptr;
+    World* m_World = nullptr;
+
+    bool m_Enabled = false;
 };
