@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PoolAllocator.h"
+#include "World/Block.h"
 
 class Chunk;
 
@@ -12,8 +13,11 @@ class ChunkAllocator
 
     void Init(size_t maxChunks);
 
-    Chunk* AllocChunk();
-    void FreeChunk(Chunk* chunk);
+    void* AllocChunk();
+    BlockType* AllocBlockData();
+
+    void FreeChunk(void* chunk);
+    void FreeBlockData(BlockType* blocks);
 
     void Reset();
     void Free();
@@ -22,3 +26,5 @@ class ChunkAllocator
     PoolAllocator m_ChunkPoolAllocator{};
     PoolAllocator m_BlockDataAllocator{};
 };
+
+inline ChunkAllocator g_ChunkAllocator;

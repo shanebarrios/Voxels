@@ -1,168 +1,173 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
 #include <array>
-#include <string_view>
-#include <memory>
-#include <glm/glm.hpp>
+#include <vector>
 
 #include "ComponentArray.h"
-
-using ComponentID = uint32_t;
+#include "Components.h"
+#include "Memory/ArenaAllocator.h"
 
 class ECS
 {
-public:
-	ECS() = default;
+  public:
+    ECS() = default;
 
-	Entity CreateEntity();
+    void Init();
 
-	void DestroyEntity(Entity entity);
+    Entity CreateEntity();
 
-	template <typename Component, size_t MaxComponents = 8192>
-	void RegisterComponent();
+    void DestroyEntity(Entity entity);
 
-	template <typename Component> 
-	Component& AddComponent(Entity entity, Component&& component);
+    template <Component C>
+    C& AddComponent(Entity entity, C&& component);
 
-	template <typename Component>
-	void RemoveComponent(Entity entity);
+    template <Component C>
+    void RemoveComponent(Entity entity);
 
-	template <typename Component>
-	Component& GetComponent(Entity entity);
+    template <Component C>
+    C& GetComponent(Entity entity);
 
-	template <typename Component>
-	const Component& GetComponent(Entity entity) const;
+    template <Component C>
+    const C& GetComponent(Entity entity) const;
 
-	template <typename Component>
-	Component* GetOptionalComponent(Entity entity);
+    template <Component C>
+    C* GetOptionalComponent(Entity entity);
 
-	template <typename Component>
-	const Component* GetOptionalComponent(Entity entity) const;
+    template <Component C>
+    const C* GetOptionalComponent(Entity entity) const;
 
-	template <typename Component>
-	bool HasComponent(Entity entity) const;
+    template <Component C>
+    bool HasComponent(Entity entity) const;
 
-	template <typename Component>
-	ComponentArray<Component>& GetComponentArray();
+    template <Component C>
+    ComponentArray<C>& GetComponentArray();
 
-	template <typename Component>
-	const ComponentArray<Component>& GetComponentArray() const;
+    template <Component C>
+    const ComponentArray<C>& GetComponentArray() const;
 
-private:
-	template <typename Component>
-	ComponentID GetComponentID() const;
+  private:
+    template <Component C>
+    void AllocateComponentArray();
 
-	ComponentID GenerateComponentID() const;
+  private:
+    Entity m_EntityCount = 0;
+    ArenaAllocator m_ArenaAllocator{};
 
-private:
-	Entity m_EntityCount = 0;
-
-	std::array<std::unique_ptr<IComponentArray>, 32> m_ComponentArrays{};
-
-	std::vector<Entity> m_FreedList{};
+    std::array<void*, ID_MaxComponents> m_ComponentArrays{};
+    std::vector<Entity> m_FreedList{};
 };
 
-template <typename Component>
-inline ComponentID ECS::GetComponentID() const
+namespace detail
 {
-	static ComponentID ID = GenerateComponentID();
-	return ID;
+template <Component... Cs>
+constexpr size_t TotalArenaSize()
+{
+    return (0 + ... + sizeof(ComponentArray<Cs>));
+}
+} // namespace detail
+
+inline void ECS::Init()
+{
+    constexpr size_t arenaSize = std::apply(
+        [](auto... components) {
+            return (0 + ... + sizeof(ComponentArray<decltype(components)>));
+        },
+        AllComponents{});
+    m_ArenaAllocator.Init(arenaSize, 0);
+    std::apply(
+        [this](auto... components) {
+            (this->AllocateComponentArray<decltype(components)>(), ...);
+        },
+        AllComponents{});
 }
 
-inline ComponentID ECS::GenerateComponentID() const
+template <Component C>
+void ECS::AllocateComponentArray()
 {
-	static ComponentID ID = 0;
-	return ID++;
+    auto ptr = m_ArenaAllocator.New<ComponentArray<C>>();
+    m_ComponentArrays[C::ID] = ptr;
 }
 
-template <typename Component>
-inline ComponentArray<Component>& ECS::GetComponentArray()
+template <Component C>
+inline ComponentArray<C>& ECS::GetComponentArray()
 {
-	ComponentID id = GetComponentID<Component>();
-	assert(id < 32 && m_ComponentArrays[id]);
-	return *dynamic_cast<ComponentArray<Component>*>(m_ComponentArrays[id].get());
+    constexpr ComponentID id = C::ID;
+    void* const mem = m_ComponentArrays[id];
+    return *reinterpret_cast<ComponentArray<C>*>(mem);
 }
 
-template <typename Component>
-inline const ComponentArray<Component>& ECS::GetComponentArray() const
+template <Component C>
+inline const ComponentArray<C>& ECS::GetComponentArray() const
 {
-	ComponentID id = GetComponentID<Component>();
-	assert(m_ComponentArrays[id]);
-	return *dynamic_cast<ComponentArray<Component>*>(m_ComponentArrays[id].get());
+    constexpr ComponentID id = C::ID;
+    const void* mem = m_ComponentArrays[id];
+    return *reinterpret_cast<const ComponentArray<C>*>(mem);
 }
 
 inline Entity ECS::CreateEntity()
 {
-	if (!m_FreedList.empty())
-	{
-		Entity entity = m_FreedList.back();
-		m_FreedList.pop_back();
-		return entity;
-	}
-	else
-	{
-		return m_EntityCount++;
-	}
+    if (!m_FreedList.empty())
+    {
+        Entity entity = m_FreedList.back();
+        m_FreedList.pop_back();
+        return entity;
+    }
+    else
+    {
+        assert(m_EntityCount < MAX_ENTITIES);
+        return m_EntityCount++;
+    }
 }
 
 inline void ECS::DestroyEntity(Entity entity)
 {
-	m_FreedList.push_back(entity);
-
-	for (ComponentID i = 0; m_ComponentArrays[i]; i++)
-	{
-		m_ComponentArrays[i]->Destroy(entity);
-	}
+    assert(entity < MAX_ENTITIES);
+    std::apply(
+        [this, entity](auto... components) {
+            (this->RemoveComponent<decltype(components)>(entity), ...);
+        },
+        AllComponents{});
+    m_FreedList.push_back(entity);
 }
 
-template <typename Component, size_t MaxComponents>
-inline void ECS::RegisterComponent()
+template <Component C>
+inline C& ECS::AddComponent(Entity entity, C&& component)
 {
-	ComponentID id = GetComponentID<Component>();
-	assert(id < 32 && !m_ComponentArrays[id]);
-	m_ComponentArrays[id] = std::make_unique<ComponentArray<Component, MaxComponents>>();
+    return GetComponentArray<C>().Insert(entity, std::move(component));
 }
 
-template <typename Component>
-inline Component& ECS::AddComponent(Entity entity, Component&& component)
-{
-	return GetComponentArray<Component>().Insert(entity, std::move(component));
-}
-
-template <typename Component>
+template <Component C>
 inline void ECS::RemoveComponent(Entity entity)
 {
-	GetComponentArray<Component>().Remove(entity);
+    GetComponentArray<C>().Remove(entity);
 }
 
-template <typename Component>
-inline Component& ECS::GetComponent(Entity entity)
+template <Component C>
+inline C& ECS::GetComponent(Entity entity)
 {
-	return GetComponentArray<Component>().Get(entity);
+    return GetComponentArray<C>().Get(entity);
 }
 
-template <typename Component>
-inline const Component& ECS::GetComponent(Entity entity) const
+template <Component C>
+inline const C& ECS::GetComponent(Entity entity) const
 {
-	return GetComponentArray<Component>().Get(entity);
+    return GetComponentArray<C>().Get(entity);
 }
 
-template <typename Component>
-inline Component* ECS::GetOptionalComponent(Entity entity)
+template <Component C>
+inline C* ECS::GetOptionalComponent(Entity entity)
 {
-	return GetComponentArray<Component>().OptionalGet(entity);
+    return GetComponentArray<C>().OptionalGet(entity);
 }
 
-template <typename Component>
-const Component* ECS::GetOptionalComponent(Entity entity) const
+template <Component C>
+const C* ECS::GetOptionalComponent(Entity entity) const
 {
-	return GetComponentArray<Component>().OptionalGet(entity);
+    return GetComponentArray<C>().OptionalGet(entity);
 }
 
-template <typename Component>
+template <Component C>
 inline bool ECS::HasComponent(Entity entity) const
 {
-	return GetComponentArray<Component>().Contains(entity);
+    return GetComponentArray<C>().Contains(entity);
 }

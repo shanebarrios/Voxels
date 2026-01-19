@@ -383,14 +383,12 @@ void WorldGenerator::BuildTerrain(Chunk& chunk,
     }
 }
 
-Chunk* WorldGenerator::GenerateChunk(ChunkAllocator& allocator,
-                                     ChunkCoords chunkCoords)
+Chunk* WorldGenerator::GenerateChunk(ChunkCoords chunkCoords)
 {
     const ChunkGenInfo& genInfo =
         GetChunkGenInfo(static_cast<ChunkCoords2D>(chunkCoords));
 
-    Chunk* const chunk = allocator.AllocChunk();
-    chunk->SetCoords(chunkCoords);
+    Chunk* const chunk = new Chunk{chunkCoords};
 
     BuildTerrain(*chunk, genInfo);
 

@@ -11,4 +11,6 @@ void* MemCommitAndReserve(void* addr, size_t numBytes);
 void* MemCommitReserved(void* addr, size_t numBytes);
 
 bool MemFree(void* addr, size_t numBytes);
+
+size_t GetPageSize();
 } // namespace Platform

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Block.h"
 #include "ECS/ECS.h"
 #include "World/Coordinates.h"
-#include "Block.h"
 #include <optional>
 
 struct InputComponent;
@@ -15,31 +15,31 @@ class Camera;
 
 class PlayerController
 {
-public:
-	PlayerController(Entity player, ECS& ecs, World& world);
+  public:
+    PlayerController(Entity player, ECS& ecs, World& world);
 
-	void Update(const Camera& camera);
+    void Update(const Camera& camera);
 
-	void SetPhysicsEnabled(bool yes);
+    void SetPhysicsEnabled(bool yes);
 
-	BlockType GetActiveBlock() const { return m_ActiveBlock; }
+    BlockType GetActiveBlock() const { return m_ActiveBlock; }
 
-	void SetActiveBlock(BlockType block) { m_ActiveBlock = block; }
+    void SetActiveBlock(BlockType block) { m_ActiveBlock = block; }
 
-private:
-	void UpdateInput(const Camera& camera);
-	void UpdateLook(const Camera& camera);
-	void HandleBlockInteractions(const Camera& camera);
-	void HandleDebugMovement();
+  private:
+    void UpdateInput(const Camera& camera);
+    void UpdateLook(const Camera& camera);
+    void HandleBlockInteractions(const Camera& camera);
+    void HandleDebugMovement();
 
-private:
-	ECS& m_ECS;
-	Entity m_Player;
-	World& m_World;
-	TransformComponent& m_TransformComponent;
-	LookComponent& m_LookComponent;
-	InputComponent& m_InputComponent;
-	PhysicsComponent* m_PhysicsComponent;
+  private:
+    ECS& m_ECS;
+    Entity m_Player;
+    World& m_World;
+    TransformComponent& m_TransformComponent;
+    LookComponent& m_LookComponent;
+    InputComponent& m_InputComponent;
+    PhysicsComponent* m_PhysicsComponent;
 
-	BlockType m_ActiveBlock = BlockType::Stone;
+    BlockType m_ActiveBlock = BlockType::Stone;
 };

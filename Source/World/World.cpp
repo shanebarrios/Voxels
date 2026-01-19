@@ -18,11 +18,10 @@
 
 extern DebugState g_DebugState;
 
-World::World()
+void World::Init()
 {
-    m_Allocator.Init(MathUtils::Cube(Config::ChunkLoadDistance + 1) * 16);
+    m_ECS.Init();
     m_LightDir.Normalize();
-    RegisterComponents();
     m_Player = EntityFactory::CreateDebugPlayer(m_ECS, {0.0f, 50.0f, 0.0f});
     m_PlayerController =
         std::make_unique<PlayerController>(m_Player, m_ECS, *this);
@@ -149,14 +148,6 @@ void World::Update(const Camera& camera)
     UpdateChunkRenderList();
 }
 
-void World::RegisterComponents()
-{
-    m_ECS.RegisterComponent<TransformComponent>();
-    m_ECS.RegisterComponent<PhysicsComponent>();
-    m_ECS.RegisterComponent<InputComponent>();
-    m_ECS.RegisterComponent<LookComponent>();
-}
-
 void World::UpdateLoadedChunkQueue()
 {
     const WorldCoords playerPosition =
@@ -209,7 +200,7 @@ void World::UnloadChunks()
             std::abs(diff.Z) > Config::ChunkLoadDistance)
         {
             Chunk* chunk = it->second;
-            m_Allocator.FreeChunk(chunk);
+            delete chunk;
             it = m_LoadedChunks.erase(it);
         }
         else
@@ -302,8 +293,7 @@ void World::LoadChunks()
             }
         }
 
-        Chunk* const newChunk =
-            m_WorldGenerator.GenerateChunk(m_Allocator, coords);
+        Chunk* const newChunk = m_WorldGenerator.GenerateChunk(coords);
         m_ChunksByDistance.push_back(newChunk);
         m_LoadedChunks[coords] = newChunk;
     }

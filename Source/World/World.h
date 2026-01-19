@@ -5,10 +5,8 @@
 #include "Chunk.h"
 #include "PlayerController.h"
 #include "WorldGenerator.h"
-#include <array>
 #include <glm/glm.hpp>
 #include <memory>
-#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -28,7 +26,9 @@ struct PlayerView
 class World
 {
   public:
-    World();
+    World() = default;
+
+    void Init();
 
     void Update(const Camera& camera);
 
@@ -79,7 +79,6 @@ class World
 
   private:
     ChunkMap m_LoadedChunks{};
-    ChunkAllocator m_Allocator{};
     ECS m_ECS{};
     Entity m_Player{};
 

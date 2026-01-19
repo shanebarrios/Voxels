@@ -56,7 +56,7 @@ class WorldGenerator
     // Change this to use seed
     explicit WorldGenerator(World* world);
 
-    Chunk* GenerateChunk(ChunkAllocator& allocator, ChunkCoords coords);
+    Chunk* GenerateChunk(ChunkCoords coords);
 
   private:
     ChunkHeightMap GenerateHeightMap(ChunkCoords2D coords) const;

@@ -16,18 +16,24 @@ void ChunkAllocator::Init(size_t maxChunks)
     m_BlockDataAllocator.AllocPool(sizeof(BlockType) * CHUNK_VOLUME, maxChunks);
 }
 
-Chunk* ChunkAllocator::AllocChunk()
+void* ChunkAllocator::AllocChunk()
 {
-    BlockType* const blockData = m_BlockDataAllocator.Alloc<BlockType>();
-    Chunk* const chunk = m_ChunkPoolAllocator.New<Chunk>();
-    chunk->SetBlocks(blockData);
-    return chunk;
+    return m_ChunkPoolAllocator.Alloc<Chunk>();
 }
 
-void ChunkAllocator::FreeChunk(Chunk* chunk)
+BlockType* ChunkAllocator::AllocBlockData()
 {
-    m_BlockDataAllocator.Dealloc(chunk->GetBlocks());
-    m_ChunkPoolAllocator.Delete<Chunk>(chunk);
+    return m_BlockDataAllocator.Alloc<BlockType>();
+}
+
+void ChunkAllocator::FreeChunk(void* chunk)
+{
+    m_ChunkPoolAllocator.DeallocRaw(chunk);
+}
+
+void ChunkAllocator::FreeBlockData(BlockType* blocks)
+{
+    m_BlockDataAllocator.Dealloc(blocks);
 }
 
 void ChunkAllocator::Reset()

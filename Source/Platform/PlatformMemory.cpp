@@ -26,20 +26,33 @@ void* MemCommitReserved(void* addr, size_t numBytes)
 
 bool MemFree(void* addr, size_t numBytes)
 {
-    return VirtualFree(addr, numBytes, MEM_RELEASE);
+    return VirtualFree(addr, 0, MEM_RELEASE);
+}
+
+size_t GetPageSize()
+{
+    static size_t pageSize = 0;
+    if (pageSize != 0)
+        return pageSize;
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    pageSize = si.dwPageSize;
+    return pageSize;
 }
 } // namespace Platform
 
 #elif defined(__APPLE__) || defined(__linux__)
 
 #include <sys/mman.h>
+#include <unistd.h>
 
 namespace Platform
 {
 void* MemReserve(void* addr, size_t numBytes)
 {
     void* ptr =
-        mmap(addr, numBytes, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        mmap(addr, numBytes, PROT_NONE,
+             MAP_PRIVATE | MAP_ANONYMOUS | (addr ? MAP_FIXED : 0), -1, 0);
     if (ptr == MAP_FAILED)
         return nullptr;
     return ptr;
@@ -47,8 +60,9 @@ void* MemReserve(void* addr, size_t numBytes)
 
 void* MemCommitAndReserve(void* addr, size_t numBytes)
 {
-    void* ptr = mmap(addr, numBytes, PROT_READ | PROT_WRITE,
-                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    void* ptr =
+        mmap(addr, numBytes, PROT_READ | PROT_WRITE,
+             MAP_PRIVATE | MAP_ANONYMOUS | (addr ? MAP_FIXED : 0), -1, 0);
     if (ptr == MAP_FAILED)
         return nullptr;
     return ptr;
@@ -57,13 +71,23 @@ void* MemCommitAndReserve(void* addr, size_t numBytes)
 void* MemCommitReserved(void* addr, size_t numBytes)
 {
     if (mprotect(addr, numBytes, PROT_READ | PROT_WRITE) != 0)
-        return NULL;
+        return nullptr;
     return addr;
 }
 
 bool MemFree(void* addr, size_t numBytes)
 {
     return munmap(addr, numBytes) == 0;
+}
+
+size_t GetPageSize()
+{
+    static size_t pageSize = 0;
+    if (pageSize != 0)
+        return pageSize;
+
+    pageSize = sysconf(_SC_PAGESIZE);
+    return pageSize;
 }
 } // namespace Platform
 

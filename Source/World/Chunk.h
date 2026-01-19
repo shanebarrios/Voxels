@@ -9,8 +9,18 @@ class World;
 class Chunk
 {
   public:
-    Chunk(ChunkCoords coords, BlockType* blocks);
+    Chunk(ChunkCoords coords);
     Chunk();
+
+    ~Chunk();
+    Chunk(Chunk&) = delete;
+    Chunk(Chunk&&);
+
+    Chunk& operator=(Chunk&) = delete;
+    Chunk& operator=(Chunk&&);
+
+    void* operator new(size_t size);
+    void operator delete(void* ptr);
 
     ChunkCoords GetCoords() const { return m_Coords; };
     void SetCoords(ChunkCoords coords) { m_Coords = coords; }
